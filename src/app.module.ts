@@ -13,6 +13,7 @@ import { MailModule } from "./mail/mail.module";
 import { UsersModule } from "./users/users.module";
 import { UsersService } from "./users/users.service";
 import { StudentsModule } from "./students/students.module";
+import { BillTypesModule } from './bill-types/bill-types.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { StudentsModule } from "./students/students.module";
     AdminsModule,
     MailModule,
     StudentsModule,
+    BillTypesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

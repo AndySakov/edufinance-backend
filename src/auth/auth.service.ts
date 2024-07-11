@@ -80,6 +80,27 @@ export class AuthService {
     }
   }
 
+  async updatePassword(
+    email: string,
+    body: UpdatePasswordDto,
+  ): Promise<ResponseWithNoData> {
+    const existingUser = await this.usersService.findByEmail(email, {
+      password: true,
+    });
+    if (existingUser) {
+      const isValid = await this.validatePassword(
+        existingUser.password,
+        body.oldPassword,
+      );
+      if (isValid) {
+        await this.usersService.updateUserPassword(email, body.newPassword);
+        return { success: true, message: "Password updated" };
+      } else {
+        return { success: false, message: "Invalid credentials" };
+      }
+    }
+  }
+
   async validatePassword(hashed: string, plain: string): Promise<boolean> {
     return bcrypt.compare(plain, hashed);
   }
@@ -111,27 +132,6 @@ export class AuthService {
     } catch (error) {
       this.logger.error(`Error decoding token: ${error}`);
       return null;
-    }
-  }
-
-  async updatePassword(
-    email: string,
-    body: UpdatePasswordDto,
-  ): Promise<ResponseWithNoData> {
-    const existingUser = await this.usersService.findByEmail(email, {
-      password: true,
-    });
-    if (existingUser) {
-      const isValid = await this.validatePassword(
-        existingUser.password,
-        body.oldPassword,
-      );
-      if (isValid) {
-        await this.usersService.updateUserPassword(email, body.newPassword);
-        return { success: true, message: "Password updated" };
-      } else {
-        return { success: false, message: "Invalid credentials" };
-      }
     }
   }
 }

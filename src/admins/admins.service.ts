@@ -6,6 +6,7 @@ import { users } from "src/db/users";
 import { MailService } from "src/mail/mail.service";
 import { randomToken } from "src/shared/helpers";
 import { generateNewAdminEmail } from "src/shared/helpers/email-generators";
+import { data } from "src/shared/interfaces";
 import { CustomLogger } from "src/shared/utils/custom-logger";
 import { UsersService } from "src/users/users.service";
 import { CreateAdminDto } from "./dto/create-admin.dto";
@@ -48,14 +49,22 @@ export class AdminsService {
         ),
       });
       this.logger.log(`Admin created: ${createAdminDto.email}`);
+      return {
+        success: true,
+        message: "Admin created",
+      };
     } catch (error) {
       this.logger.error(`Error creating admin: ${error}`);
+      return {
+        success: false,
+        message: "Error creating admin",
+      };
     }
   }
 
   async findAll() {
     try {
-      const user = await this.drizzle.query.users.findFirst({
+      const users = await this.drizzle.query.users.findMany({
         with: {
           usersToPermissions: {
             columns: {
@@ -78,21 +87,32 @@ export class AdminsService {
           },
         },
       });
-      const permissions = user?.usersToPermissions.map(p => p.permission.name);
-      const details = {
-        firstName: user.adminDetails.firstName,
-        lastName: user.adminDetails.lastName,
-      };
       return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        details: details,
-        permissions: permissions,
+        success: true,
+        message: "Admins found",
+        data: users.map(user => {
+          const permissions = user?.usersToPermissions.map(
+            p => p.permission.name,
+          );
+          const details = {
+            firstName: user.adminDetails.firstName,
+            lastName: user.adminDetails.lastName,
+          };
+          return {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            details: details,
+            permissions: permissions,
+          };
+        }),
       };
     } catch (error) {
       this.logger.error(`Error finding all admins: ${error}`);
-      return [];
+      return {
+        success: false,
+        message: "Error finding admins",
+      };
     }
   }
 
@@ -122,27 +142,43 @@ export class AdminsService {
           },
         },
       });
-      const permissions = user?.usersToPermissions.map(p => p.permission.name);
-      const details = {
-        firstName: user.adminDetails.firstName,
-        lastName: user.adminDetails.lastName,
-      };
-      return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        details: details,
-        permissions: permissions,
-      };
+      if (user) {
+        const permissions = user?.usersToPermissions.map(
+          p => p.permission.name,
+        );
+        const details = {
+          firstName: user.adminDetails.firstName,
+          lastName: user.adminDetails.lastName,
+        };
+        return {
+          success: true,
+          message: "Admin found",
+          data: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            details: details,
+            permissions: permissions,
+          },
+        };
+      } else {
+        return {
+          success: false,
+          message: "Admin not found",
+        };
+      }
     } catch (error) {
       this.logger.error(`Error finding admin: ${error}`);
-      return null;
+      return {
+        success: false,
+        message: "Error finding admin",
+      };
     }
   }
 
   async update(id: number, updateAdminDto: UpdateAdminDto) {
     try {
-      const existingUser = await this.findOne(id);
+      const existingUser = data(await this.findOne(id));
       if (existingUser) {
         await this.usersService.updateAdminDetails(existingUser.email, {
           firstName: updateAdminDto.firstName,
@@ -152,9 +188,18 @@ export class AdminsService {
           existingUser.email,
           updateAdminDto.permissions,
         );
+      } else {
+        return {
+          success: false,
+          message: "Admin not found",
+        };
       }
     } catch (error) {
       this.logger.error(`Error updating admin: ${error}`);
+      return {
+        success: false,
+        message: "Error updating admin",
+      };
     }
   }
 
@@ -163,27 +208,45 @@ export class AdminsService {
     updatePermissionsDto: UpdatePermissionsDto,
   ) {
     try {
-      const existingUser = await this.findOne(id);
+      const existingUser = data(await this.findOne(id));
       if (existingUser) {
         await this.usersService.syncUserPermissions(
           existingUser.email,
           updatePermissionsDto.permissions,
         );
+      } else {
+        return {
+          success: false,
+          message: "Admin not found",
+        };
       }
     } catch (error) {
       this.logger.error(`Error updating admin permissions: ${error}`);
+      return {
+        success: false,
+        message: "Error updating admin permissions",
+      };
     }
   }
 
   async remove(id: number) {
     try {
-      const existingUser = await this.findOne(id);
+      const existingUser = data(await this.findOne(id));
       if (existingUser) {
         await this.drizzle.delete(users).where(eq(users.id, id));
         this.logger.log(`Admin removed: ${existingUser.email}`);
+      } else {
+        return {
+          success: false,
+          message: "Admin not found",
+        };
       }
     } catch (error) {
       this.logger.error(`Error removing admin: ${error}`);
+      return {
+        success: false,
+        message: "Error removing admin",
+      };
     }
   }
 }
