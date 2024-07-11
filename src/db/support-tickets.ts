@@ -21,12 +21,12 @@ export const supportTickets = mysqlTable("support_tickets", {
     mode: "bigint",
     unsigned: true,
   }).references(() => users.id, {
-    onDelete: "cascade",
+    onDelete: "set null",
   }),
   inquirerId: bigint("handler_id", { mode: "bigint", unsigned: true })
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
-  status: mysqlEnum("status", ["pending", "resolved", "closed"]).notNull(),
+  status: mysqlEnum("status", ["pending", "active", "resolved"]).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

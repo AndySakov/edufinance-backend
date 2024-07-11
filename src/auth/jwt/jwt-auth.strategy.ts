@@ -5,7 +5,7 @@ import { ExtractJwt, Strategy } from "passport-jwt";
 import { CustomLogger } from "src/shared/utils/custom-logger";
 import { AuthService } from "../auth.service";
 import { UsersService } from "src/users/users.service";
-import { User } from "src/shared/interfaces";
+import { AuthenticatedUser } from "src/shared/interfaces";
 
 @Injectable()
 export class JwtAuthStrategy extends PassportStrategy(Strategy) {
@@ -23,7 +23,7 @@ export class JwtAuthStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: string): Promise<User | null> {
+  async validate(payload: string): Promise<AuthenticatedUser | null> {
     const user = this.authService.decodeToken(payload);
     return this.userServie.findByEmail(user.email);
   }

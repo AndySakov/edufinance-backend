@@ -7,7 +7,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import { Reflector } from "@nestjs/core";
-import { Roles } from "src/shared/constants";
+import { UserRoles } from "src/shared/constants";
 import { AuthService } from "./auth.service";
 
 @Injectable()
@@ -45,14 +45,19 @@ export class RBACGuard implements CanActivate {
     const req = httpContext.getRequest<Request>();
     const session = await this.getSession(req);
 
+    if (session?.role === UserRoles.SUPER_ADMIN) {
+      return true;
+    }
+
     const permittedRoles =
       this.reflector.get<string[]>("roles", context.getHandler()) || [];
     const requiredPermissions =
       this.reflector.get<string[]>("permissions", context.getHandler()) || [];
+
     if (this.configService.get<string>("NODE_ENV") === "development") {
       return true;
     } else {
-      if (!permittedRoles.length || permittedRoles.includes(Roles.ANON)) {
+      if (!permittedRoles.length && !requiredPermissions.length) {
         return true;
       }
     }
@@ -63,13 +68,18 @@ export class RBACGuard implements CanActivate {
     const meetsPermissionRequirement = requiredPermissions.every(p =>
       (session?.permissions ?? []).includes(p),
     );
-    if (meetsRoleRequirement && meetsPermissionRequirement) {
+
+    if (meetsRoleRequirement || permittedRoles.length === 0) {
       return true;
-    } else {
-      throw new ForbiddenException({
-        success: false,
-        message: "Forbidden resource: Insufficient permissions",
-      });
     }
+
+    if (meetsPermissionRequirement || requiredPermissions.length === 0) {
+      return true;
+    }
+
+    throw new ForbiddenException({
+      success: false,
+      message: "Forbidden resource: Insufficient permissions",
+    });
   }
 }

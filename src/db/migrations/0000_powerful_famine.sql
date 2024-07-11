@@ -24,7 +24,7 @@ CREATE TABLE `bills` (
 	`amount_due` decimal(10,2) NOT NULL,
 	`due_date` datetime NOT NULL,
 	`installment_supported` boolean NOT NULL,
-	`max_installments` bigint unsigned NOT NULL,
+	`max_installments` int NOT NULL,
 	`remaining_installments` bigint unsigned NOT NULL,
 	`bill_type_id` bigint unsigned NOT NULL,
 	`payee_id` bigint unsigned NOT NULL,
@@ -165,7 +165,7 @@ CREATE TABLE `support_tickets` (
 	`description` varchar(128) NOT NULL,
 	`category_id` bigint unsigned NOT NULL,
 	`handler_id` bigint unsigned NOT NULL,
-	`status` enum('pending','resolved','closed') NOT NULL,
+	`status` enum('pending','active','resolved') NOT NULL,
 	`created_at` timestamp DEFAULT (now()),
 	`updated_at` timestamp DEFAULT (now()),
 	CONSTRAINT `support_tickets_id` PRIMARY KEY(`id`)

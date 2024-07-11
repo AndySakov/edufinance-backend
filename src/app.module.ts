@@ -1,15 +1,18 @@
+import { DrizzleMySqlModule } from "@knaadh/nestjs-drizzle-mysql2";
 import { Inject, Module, OnModuleInit } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { migrate } from "drizzle-orm/mysql2/migrator";
+import { AdminsModule } from "./admins/admins.module";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { AuthModule } from "./auth/auth.module";
-import { ConfigModule, ConfigService } from "@nestjs/config";
-import { DrizzleMySqlModule } from "@knaadh/nestjs-drizzle-mysql2";
-import { UsersModule } from "./users/users.module";
-import envSchema from "./env-schema";
-import * as schema from "./db/schema";
-import { MailerModule } from "nestjs-mailer";
 import { Database, DRIZZLE } from "./db";
-import { migrate } from "drizzle-orm/mysql2/migrator";
+import * as schema from "./db/schema";
+import envSchema from "./env-schema";
+import { MailModule } from "./mail/mail.module";
+import { UsersModule } from "./users/users.module";
+import { UsersService } from "./users/users.service";
+import { StudentsModule } from "./students/students.module";
 
 @Module({
   imports: [
@@ -39,36 +42,28 @@ import { migrate } from "drizzle-orm/mysql2/migrator";
         };
       },
     }),
-    MailerModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        config: {
-          transport: {
-            host: configService.get<string>("MAILTRAP_HOST"),
-            port: configService.get<number>("MAILTRAP_PORT"),
-            secure: configService.get<boolean>("MAILTRAP_SECURE"),
-            auth: {
-              user: configService.get<string>("MAILTRAP_USER"),
-              pass: configService.get<string>("MAILTRAP_PASS"),
-            },
-          },
-          defaults: {
-            from: configService.get<string>("MAILTRAP_FROM"),
-          },
-        },
-      }),
-    }),
     AuthModule,
     UsersModule,
+    AdminsModule,
+    MailModule,
+    StudentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements OnModuleInit {
-  constructor(@Inject(DRIZZLE) private readonly drizzle: Database) {}
+  constructor(
+    @Inject(DRIZZLE) private readonly drizzle: Database,
+    private readonly configService: ConfigService,
+    private readonly userService: UsersService,
+  ) {}
 
   async onModuleInit() {
     await migrate(this.drizzle, { migrationsFolder: "src/db/migrations" });
+    await this.userService.createPermissions();
+    await this.userService.createSuperAdmin(
+      this.configService.get<string>("SUPER_ADMIN_EMAIL"),
+      this.configService.get<string>("SUPER_ADMIN_PASSWORD"),
+    );
   }
 }

@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "fed9cd4a-fb03-4aa5-9461-92003ae3a4df",
+  "id": "0231d3b1-9e99-4ad4-bb40-1df2350bb752",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "admin_details": {
@@ -191,7 +191,7 @@
         },
         "max_installments": {
           "name": "max_installments",
-          "type": "bigint unsigned",
+          "type": "int",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -1246,7 +1246,7 @@
         },
         "status": {
           "name": "status",
-          "type": "enum('pending','resolved','closed')",
+          "type": "enum('pending','active','resolved')",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false

@@ -6,6 +6,7 @@ import {
   mysqlTable,
   serial,
   timestamp,
+  int,
 } from "drizzle-orm/mysql-core";
 import { billTypes } from "./bill-types";
 import { users } from "./users";
@@ -17,10 +18,7 @@ export const bills = mysqlTable("bills", {
   amountDue: decimal("amount_due", { precision: 10, scale: 2 }).notNull(),
   dueDate: datetime("due_date").notNull(),
   installmentSupported: boolean("installment_supported").notNull(),
-  maxInstallments: bigint("max_installments", {
-    mode: "bigint",
-    unsigned: true,
-  }).notNull(),
+  maxInstallments: int("max_installments").notNull(),
   remainingInstallments: bigint("remaining_installments", {
     mode: "bigint",
     unsigned: true,

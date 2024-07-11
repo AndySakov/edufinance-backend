@@ -20,6 +20,8 @@ const envSchema = Joi.object({
   DB_PASSWORD: Joi.string(),
   DB_NAME: Joi.string(),
   DB_PORT: Joi.number().default(3306),
+  SUPER_ADMIN_EMAIL: Joi.string().email(),
+  SUPER_ADMIN_PASSWORD: Joi.string(),
 });
 
 export default envSchema;

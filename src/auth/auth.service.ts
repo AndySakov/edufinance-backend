@@ -4,10 +4,16 @@ import { JwtService } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { eq } from "drizzle-orm";
 import { Database, DRIZZLE } from "src/db";
-import { User, users } from "src/db/users";
-import { ResponseWithOptionalData } from "src/shared/interfaces";
-import { LoginInput } from "./login.input";
+import { users } from "src/db/users";
+import {
+  ResponseWithNoData,
+  ResponseWithOptionalData,
+  User,
+} from "src/shared/interfaces";
+import { LoginDto } from "./dto/login.dto";
 import { CustomLogger } from "src/shared/utils/custom-logger";
+import { UsersService } from "src/users/users.service";
+import { UpdatePasswordDto } from "./dto/update-password.dto";
 
 @Injectable()
 export class AuthService {
@@ -18,6 +24,7 @@ export class AuthService {
     private readonly drizzle: Database,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
   ) {
     this.jwtConfig = {
       secret: this.configService.get<string>("JWT_SECRET"),
@@ -25,7 +32,7 @@ export class AuthService {
     };
   }
 
-  async login(body: LoginInput): Promise<
+  async login(body: LoginDto): Promise<
     ResponseWithOptionalData<
       Omit<User, "password" | "createdAt" | "updatedAt"> & {
         token: string;
@@ -36,49 +43,40 @@ export class AuthService {
     const user = await this.drizzle.query.users.findFirst({
       where: eq(users.email, body.email),
       columns: {
-        id: true,
+        id: false,
         email: true,
         password: true,
         role: true,
       },
-      with: {
-        usersToPermissions: {
-          columns: {
-            permissionId: false,
-            userId: false,
-          },
-          with: {
-            permission: {
-              columns: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
     });
     if (user.email) {
-      const isValid = await this.validatePassword(body.password, user.password);
+      const isValid = await this.validatePassword(user.password, body.password);
       if (isValid) {
-        const permissions = user.usersToPermissions.map(p => p.permission.name);
+        const userWithDetails = await this.usersService.findByEmail(
+          body.email,
+          {
+            permissions: true,
+            details: true,
+            role: user?.role === "super-admin" ? "admin" : user?.role,
+          },
+        );
         return {
           success: true,
           message: "Login successful",
           data: {
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            permissions,
+            ...userWithDetails,
             token: this.createToken({
               email: user.email,
               role: user.role,
-              permissions,
+              permissions: userWithDetails?.permissions ?? [],
             }),
           },
         };
       } else {
-        return { success: false, message: "Invalid password" };
+        return { success: false, message: "Invalid credentials" };
       }
+    } else {
+      return { success: false, message: "Invalid credentials" };
     }
   }
 
@@ -113,6 +111,27 @@ export class AuthService {
     } catch (error) {
       this.logger.error(`Error decoding token: ${error}`);
       return null;
+    }
+  }
+
+  async updatePassword(
+    email: string,
+    body: UpdatePasswordDto,
+  ): Promise<ResponseWithNoData> {
+    const existingUser = await this.usersService.findByEmail(email, {
+      password: true,
+    });
+    if (existingUser) {
+      const isValid = await this.validatePassword(
+        existingUser.password,
+        body.oldPassword,
+      );
+      if (isValid) {
+        await this.usersService.updateUserPassword(email, body.newPassword);
+        return { success: true, message: "Password updated" };
+      } else {
+        return { success: false, message: "Invalid credentials" };
+      }
     }
   }
 }

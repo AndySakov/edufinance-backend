@@ -48,6 +48,18 @@ export const randomToken = (): string => {
   return generate;
 };
 
+export const randomPassword = (): string => {
+  const uid = new ShortUniqueId();
+  const generate = uid.randomUUID(8);
+  return generate;
+};
+
+export const randomStudentId = (): string => {
+  const uid = new ShortUniqueId({ dictionary: "alphanum_upper" });
+  const generate = uid.randomUUID(8);
+  return generate;
+};
+
 export const obfuscate = (value: string | null): string | null => {
   if (value) {
     const lastFour = value.slice(-4);
