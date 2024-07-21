@@ -9,6 +9,7 @@ export type User = Omit<DBUser, "password" | "createdAt" | "updatedAt"> & {
     | Omit<AdminDetails, "id" | "userId" | "createdAt" | "updatedAt">
     | null;
   permissions: string[] | null;
+  programme: string | null;
 };
 
 export type AuthenticatedUser = {

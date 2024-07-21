@@ -6,11 +6,6 @@ CREATE TABLE `admin_details` (
 	CONSTRAINT `admin_details_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
-CREATE TABLE `applications_to_discounts` (
-	`application_id` bigint unsigned NOT NULL,
-	`discount_id` bigint unsigned NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE `bill_types` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`name` varchar(128) NOT NULL,
@@ -21,14 +16,12 @@ CREATE TABLE `bill_types` (
 --> statement-breakpoint
 CREATE TABLE `bills` (
 	`id` serial AUTO_INCREMENT NOT NULL,
+	`name` varchar(128) NOT NULL,
 	`amount_due` decimal(10,2) NOT NULL,
 	`due_date` datetime NOT NULL,
 	`installment_supported` boolean NOT NULL,
 	`max_installments` int NOT NULL,
-	`remaining_installments` bigint unsigned NOT NULL,
 	`bill_type_id` bigint unsigned NOT NULL,
-	`payee_id` bigint unsigned NOT NULL,
-	`paid_in_full` boolean NOT NULL,
 	`created_at` timestamp DEFAULT (now()),
 	`updated_at` timestamp DEFAULT (now()),
 	CONSTRAINT `bills_id` PRIMARY KEY(`id`)
@@ -37,7 +30,7 @@ CREATE TABLE `bills` (
 CREATE TABLE `financial_aid_applications` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`applicant_id` bigint unsigned NOT NULL,
-	`type_id` bigint unsigned NOT NULL,
+	`type_id` bigint unsigned,
 	`status` enum('pending','approved','rejected') NOT NULL,
 	`start_date` date NOT NULL,
 	`end_date` date NOT NULL,
@@ -50,6 +43,7 @@ CREATE TABLE `financial_aid_discounts` (
 	`id` serial AUTO_INCREMENT NOT NULL,
 	`name` varchar(128) NOT NULL,
 	`bill_type_id` bigint unsigned NOT NULL,
+	`financial_aid_type_id` bigint unsigned NOT NULL,
 	`amount` decimal(10,2) NOT NULL,
 	`created_at` timestamp DEFAULT (now()),
 	`updated_at` timestamp DEFAULT (now()),
@@ -178,7 +172,8 @@ CREATE TABLE `users` (
 	`role` enum('admin','student','super-admin') NOT NULL,
 	`created_at` timestamp DEFAULT (now()),
 	`updated_at` timestamp DEFAULT (now()),
-	CONSTRAINT `users_id` PRIMARY KEY(`id`)
+	CONSTRAINT `users_id` PRIMARY KEY(`id`),
+	CONSTRAINT `users_email_unique` UNIQUE(`email`)
 );
 --> statement-breakpoint
 CREATE TABLE `users_to_permissions` (
@@ -188,20 +183,18 @@ CREATE TABLE `users_to_permissions` (
 );
 --> statement-breakpoint
 ALTER TABLE `admin_details` ADD CONSTRAINT `admin_details_user_id_users_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE `applications_to_discounts` ADD CONSTRAINT `fk_applications_to_discounts_application_id` FOREIGN KEY (`application_id`) REFERENCES `financial_aid_applications`(`id`) ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE `applications_to_discounts` ADD CONSTRAINT `fk_applications_to_discounts_discount_id` FOREIGN KEY (`discount_id`) REFERENCES `financial_aid_discounts`(`id`) ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE `bills` ADD CONSTRAINT `bills_bill_type_id_bill_types_id_fk` FOREIGN KEY (`bill_type_id`) REFERENCES `bill_types`(`id`) ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE `bills` ADD CONSTRAINT `bills_payee_id_users_id_fk` FOREIGN KEY (`payee_id`) REFERENCES `users`(`id`) ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `financial_aid_applications` ADD CONSTRAINT `financial_aid_applications_applicant_id_student_details_id_fk` FOREIGN KEY (`applicant_id`) REFERENCES `student_details`(`id`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `financial_aid_applications` ADD CONSTRAINT `financial_aid_applications_type_id_financial_aid_types_id_fk` FOREIGN KEY (`type_id`) REFERENCES `financial_aid_types`(`id`) ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `financial_aid_discounts` ADD CONSTRAINT `financial_aid_discounts_bill_type_id_bill_types_id_fk` FOREIGN KEY (`bill_type_id`) REFERENCES `bill_types`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `financial_aid_discounts` ADD CONSTRAINT `fk_financial_aid_discounts_financial_aid_type_id` FOREIGN KEY (`financial_aid_type_id`) REFERENCES `financial_aid_types`(`id`) ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE `payments` ADD CONSTRAINT `payments_bill_id_bills_id_fk` FOREIGN KEY (`bill_id`) REFERENCES `bills`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE `payments` ADD CONSTRAINT `payments_payer_id_users_id_fk` FOREIGN KEY (`payer_id`) REFERENCES `users`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `payments` ADD CONSTRAINT `payments_payer_id_student_details_id_fk` FOREIGN KEY (`payer_id`) REFERENCES `student_details`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `payments` ADD CONSTRAINT `payments_payment_type_id_payment_types_id_fk` FOREIGN KEY (`payment_type_id`) REFERENCES `payment_types`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `receipts` ADD CONSTRAINT `receipts_payment_id_payments_id_fk` FOREIGN KEY (`payment_id`) REFERENCES `payments`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE `receipts` ADD CONSTRAINT `receipts_payee_id_users_id_fk` FOREIGN KEY (`payee_id`) REFERENCES `users`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `receipts` ADD CONSTRAINT `receipts_payee_id_student_details_id_fk` FOREIGN KEY (`payee_id`) REFERENCES `student_details`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `refunds` ADD CONSTRAINT `refunds_payment_id_payments_id_fk` FOREIGN KEY (`payment_id`) REFERENCES `payments`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE `refunds` ADD CONSTRAINT `refunds_payee_id_users_id_fk` FOREIGN KEY (`payee_id`) REFERENCES `users`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE `refunds` ADD CONSTRAINT `refunds_payee_id_student_details_id_fk` FOREIGN KEY (`payee_id`) REFERENCES `student_details`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `student_details` ADD CONSTRAINT `student_details_user_id_users_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE `students_to_programmes` ADD CONSTRAINT `students_to_programmes_student_id_student_details_id_fk` FOREIGN KEY (`student_id`) REFERENCES `student_details`(`id`) ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `students_to_programmes` ADD CONSTRAINT `students_to_programmes_programme_id_programmes_id_fk` FOREIGN KEY (`programme_id`) REFERENCES `programmes`(`id`) ON DELETE restrict ON UPDATE no action;--> statement-breakpoint

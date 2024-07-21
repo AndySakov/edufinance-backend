@@ -1,0 +1,2 @@
+ALTER TABLE `bill_types` ADD `programme_id` bigint unsigned NOT NULL;--> statement-breakpoint
+ALTER TABLE `bill_types` ADD CONSTRAINT `bill_types_programme_id_programmes_id_fk` FOREIGN KEY (`programme_id`) REFERENCES `programmes`(`id`) ON DELETE restrict ON UPDATE no action;

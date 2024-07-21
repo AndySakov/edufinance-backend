@@ -5,10 +5,11 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Request } from "express";
 import { Reflector } from "@nestjs/core";
 import { UserRoles } from "src/shared/constants";
 import { AuthService } from "./auth.service";
+import { AuthenticatedUser } from "src/shared/interfaces";
+import { Request } from "express";
 
 @Injectable()
 export class RBACGuard implements CanActivate {
@@ -18,10 +19,8 @@ export class RBACGuard implements CanActivate {
     private readonly authService: AuthService,
   ) {}
 
-  private async getSession(
-    req: Request,
-  ): Promise<{ email: string; role: string; permissions: string[] } | null> {
-    const token = req.headers["authorization"];
+  private async getSession(req: Request): Promise<AuthenticatedUser | null> {
+    const token = req.headers["authorization"].split(" ")[1];
     if (token) {
       const decoded = this.authService.decodeToken(token);
       if (decoded) {
@@ -42,8 +41,10 @@ export class RBACGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const httpContext = context.switchToHttp();
-    const req = httpContext.getRequest<Request>();
+    const req = httpContext.getRequest<Request & { user: AuthenticatedUser }>();
     const session = await this.getSession(req);
+
+    req.user = session;
 
     if (session?.role === UserRoles.SUPER_ADMIN) {
       return true;
@@ -62,19 +63,23 @@ export class RBACGuard implements CanActivate {
       }
     }
 
+    if (
+      session?.role === UserRoles.STUDENT &&
+      permittedRoles.includes(UserRoles.STUDENT)
+    ) {
+      return true;
+    }
+
     const meetsRoleRequirement = permittedRoles.includes(
       session?.role as string,
     );
+
     const meetsPermissionRequirement = requiredPermissions.every(p =>
       (session?.permissions ?? []).includes(p),
     );
 
     if (meetsRoleRequirement || permittedRoles.length === 0) {
-      return true;
-    }
-
-    if (meetsPermissionRequirement || requiredPermissions.length === 0) {
-      return true;
+      return meetsPermissionRequirement || requiredPermissions.length === 0;
     }
 
     throw new ForbiddenException({

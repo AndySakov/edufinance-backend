@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { mysqlTable, serial, timestamp, varchar } from "drizzle-orm/mysql-core";
 import { financialAidApplications } from "./financial-aid-applications";
+import { financialAidDiscounts } from "./financial-aid-discounts";
 
 export const financialAidTypes = mysqlTable("financial_aid_types", {
   id: serial("id").primaryKey(),
@@ -13,6 +14,7 @@ export const financialAidTypesRelations = relations(
   financialAidTypes,
   ({ many }) => ({
     financialAidApplications: many(financialAidApplications),
+    financialAidDiscounts: many(financialAidDiscounts),
   }),
 );
 

@@ -1,15 +1,14 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { CreateBillTypeDto } from "./dto/create-bill-type.dto";
 import { UpdateBillTypeDto } from "./dto/update-bill-type.dto";
+import { CustomLogger } from "src/shared/utils/custom-logger";
 import { Database, DRIZZLE } from "src/db";
 import { billTypes } from "src/db/bill-types";
 import { eq } from "drizzle-orm";
-import { CustomLogger } from "src/shared/utils/custom-logger";
-import { data } from "src/shared/interfaces";
 
 @Injectable()
-export class BillTypesService {
-  private readonly logger = new CustomLogger(BillTypesService.name);
+export class BillTypeService {
+  private readonly logger = new CustomLogger(BillTypeService.name);
   constructor(
     @Inject(DRIZZLE)
     private readonly drizzle: Database,
@@ -19,6 +18,7 @@ export class BillTypesService {
     try {
       await this.drizzle.insert(billTypes).values({
         name: createBillTypeDto.name,
+        programmeId: BigInt(createBillTypeDto.programmeId),
       });
       return {
         success: true,
@@ -40,17 +40,32 @@ export class BillTypesService {
           id: true,
           name: true,
         },
+        with: {
+          programme: {
+            columns: {
+              programmeId: false,
+              name: true,
+            },
+          },
+        },
       });
       return {
         success: true,
         message: "Bill types found",
-        data: billTypes,
+        data: billTypes.map(billType => {
+          const programme = billType?.programme;
+          return {
+            id: billType.id,
+            name: billType.name,
+            programme: programme ? programme.name : null,
+          };
+        }),
       };
     } catch (error) {
-      this.logger.error(`Error finding bill types: ${error}`);
+      this.logger.error(`Error finding payment categories: ${error}`);
       return {
         success: false,
-        message: "Error finding bill types",
+        message: "Error finding payment categories",
       };
     }
   }
@@ -63,12 +78,24 @@ export class BillTypesService {
           id: true,
           name: true,
         },
+        with: {
+          programme: {
+            columns: {
+              programmeId: false,
+              name: true,
+            },
+          },
+        },
       });
       if (billType) {
         return {
           success: true,
           message: "Bill type found",
-          data: billType,
+          data: {
+            id: billType.id,
+            name: billType.name,
+            programme: billType?.programme?.name,
+          },
         };
       } else {
         return {
@@ -87,12 +114,14 @@ export class BillTypesService {
 
   async update(id: number, updateBillTypeDto: UpdateBillTypeDto) {
     try {
-      const existingBillType = data(await this.findOne(id));
+      const existingBillType = await this.findOne(id);
       if (existingBillType) {
         await this.drizzle
           .update(billTypes)
           .set({
             name: updateBillTypeDto.name,
+            programmeId: BigInt(updateBillTypeDto.programmeId),
+            updatedAt: new Date(),
           })
           .where(eq(billTypes.id, id));
         return {
@@ -116,7 +145,7 @@ export class BillTypesService {
 
   async remove(id: number) {
     try {
-      const existingBillType = data(await this.findOne(id));
+      const existingBillType = await this.findOne(id);
       if (existingBillType) {
         await this.drizzle.delete(billTypes).where(eq(billTypes.id, id));
         return {

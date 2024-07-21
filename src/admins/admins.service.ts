@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { Database, DRIZZLE } from "src/db";
 import { users } from "src/db/users";
 import { MailService } from "src/mail/mail.service";
-import { randomToken } from "src/shared/helpers";
+import { randomPassword } from "src/shared/helpers/random";
 import { generateNewAdminEmail } from "src/shared/helpers/email-generators";
 import { data } from "src/shared/interfaces";
 import { CustomLogger } from "src/shared/utils/custom-logger";
@@ -24,7 +24,22 @@ export class AdminsService {
 
   async create(createAdminDto: CreateAdminDto) {
     try {
-      const defaultPass = randomToken();
+      const existingUser = await this.usersService.findByEmail(
+        createAdminDto.email,
+        {
+          details: false,
+          permissions: false,
+          role: "admin",
+          password: false,
+        },
+      );
+      if (existingUser) {
+        return {
+          success: false,
+          message: "Admin already exists",
+        };
+      }
+      const defaultPass = randomPassword();
       const hashedPassword = await bcrypt.hash(defaultPass, 10);
       await this.drizzle.insert(users).values({
         email: createAdminDto.email,
@@ -52,6 +67,12 @@ export class AdminsService {
       return {
         success: true,
         message: "Admin created",
+        data: await this.usersService.findByEmail(createAdminDto.email, {
+          permissions: true,
+          details: true,
+          password: false,
+          role: "admin",
+        }),
       };
     } catch (error) {
       this.logger.error(`Error creating admin: ${error}`);
@@ -64,7 +85,8 @@ export class AdminsService {
 
   async findAll() {
     try {
-      const users = await this.drizzle.query.users.findMany({
+      const admins = await this.drizzle.query.users.findMany({
+        where: eq(users.role, "admin"),
         with: {
           usersToPermissions: {
             columns: {
@@ -90,7 +112,7 @@ export class AdminsService {
       return {
         success: true,
         message: "Admins found",
-        data: users.map(user => {
+        data: admins.map(user => {
           const permissions = user?.usersToPermissions.map(
             p => p.permission.name,
           );
@@ -188,6 +210,11 @@ export class AdminsService {
           existingUser.email,
           updateAdminDto.permissions,
         );
+        return {
+          success: true,
+          message: "Admin updated",
+          data: await this.findOne(id),
+        };
       } else {
         return {
           success: false,

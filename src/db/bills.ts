@@ -7,29 +7,25 @@ import {
   serial,
   timestamp,
   int,
+  varchar,
 } from "drizzle-orm/mysql-core";
 import { billTypes } from "./bill-types";
-import { users } from "./users";
 import { relations } from "drizzle-orm";
 import { payments } from "./payments";
+import { billsToPayees } from "./bills-to-payees";
 
 export const bills = mysqlTable("bills", {
   id: serial("id").primaryKey(),
-  amountDue: decimal("amount_due", { precision: 10, scale: 2 }).notNull(),
+  name: varchar("name", { length: 128 }).notNull(),
+  amountDue: decimal("amount_due", { precision: 10, scale: 2 })
+    .notNull()
+    .$type<number>(),
   dueDate: datetime("due_date").notNull(),
   installmentSupported: boolean("installment_supported").notNull(),
   maxInstallments: int("max_installments").notNull(),
-  remainingInstallments: bigint("remaining_installments", {
-    mode: "bigint",
-    unsigned: true,
-  }).notNull(),
   billTypeId: bigint("bill_type_id", { mode: "bigint", unsigned: true })
     .notNull()
     .references(() => billTypes.id, { onDelete: "restrict" }),
-  payeeId: bigint("payee_id", { mode: "bigint", unsigned: true })
-    .notNull()
-    .references(() => users.id, { onDelete: "restrict" }),
-  paidInFull: boolean("paid_in_full").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -39,10 +35,7 @@ export const billsRelations = relations(bills, ({ one, many }) => ({
     fields: [bills.billTypeId],
     references: [billTypes.id],
   }),
-  payee: one(users, {
-    fields: [bills.payeeId],
-    references: [users.id],
-  }),
+  billsToPayees: many(billsToPayees),
   payments: many(payments),
 }));
 

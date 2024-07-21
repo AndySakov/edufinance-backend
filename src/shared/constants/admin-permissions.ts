@@ -6,6 +6,7 @@ export const AdminPermissions = {
   FINANCIAL_AID_MANAGEMENT: "financial_aid_management",
   TRANSACTION_MANAGEMENT: "transaction_management",
   USER_MANAGEMENT: "user_management",
+  PROGRAMME_MANAGEMENT: "programme_management",
   STUDENT_MANAGEMENT: "student_management",
   SUPPORT_AND_HELP_CENTER: "support_and_help_center",
   SECURITY_AND_ACCESS_CONTROL: "security_and_access_control",

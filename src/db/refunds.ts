@@ -9,6 +9,7 @@ import {
 import { payments } from "./payments";
 import { relations } from "drizzle-orm";
 import { users } from "./users";
+import { studentDetails } from "./student-details";
 
 export const refunds = mysqlTable("refunds", {
   id: serial("id").primaryKey(),
@@ -16,7 +17,7 @@ export const refunds = mysqlTable("refunds", {
     .references(() => payments.id, { onDelete: "cascade" })
     .notNull(),
   payeeId: bigint("payee_id", { mode: "bigint", unsigned: true })
-    .references(() => users.id, { onDelete: "cascade" })
+    .references(() => studentDetails.id, { onDelete: "cascade" })
     .notNull(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   reason: varchar("reason", { length: 128 }).notNull(),
@@ -29,9 +30,9 @@ export const refundsRelations = relations(refunds, ({ one }) => ({
     fields: [refunds.paymentId],
     references: [payments.id],
   }),
-  payee: one(users, {
+  payee: one(studentDetails, {
     fields: [refunds.payeeId],
-    references: [users.id],
+    references: [studentDetails.id],
   }),
 }));
 

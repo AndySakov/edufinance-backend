@@ -1,0 +1,1 @@
+ALTER TABLE `financial_aid_applications` MODIFY COLUMN `type_id` bigint unsigned;

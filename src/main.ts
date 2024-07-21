@@ -20,8 +20,8 @@ async function bootstrap(): Promise<void> {
   app.enableCors({
     credentials: true,
     origin: process.env.ALLOWED_ORIGINS?.split(","),
-    allowedHeaders: ["content-type"],
-    methods: ["GET", "OPTIONS", "POST", "DELETE"],
+    allowedHeaders: ["content-type", "authorization"],
+    methods: ["GET", "OPTIONS", "POST", "DELETE", "PATCH", "PUT"],
   });
   app.use(express.json({ limit: "50mb" }));
 

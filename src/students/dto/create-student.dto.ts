@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsMobilePhone,
   IsNotEmpty,
+  IsOptional,
   IsString,
 } from "class-validator";
 
@@ -46,11 +47,9 @@ export class CreateStudentDto {
   @IsNotEmpty()
   country: string;
 
-  @IsString()
   @IsNotEmpty()
   @IsDateString()
-  @Type(() => Date)
-  dateOfBirth: Date;
+  dateOfBirth: string;
 
   @IsString()
   @IsNotEmpty()
@@ -73,4 +72,12 @@ export class CreateStudentDto {
     },
   )
   phoneNumber: string;
+
+  @IsString()
+  @IsOptional()
+  studentId?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  programmeId: string;
 }

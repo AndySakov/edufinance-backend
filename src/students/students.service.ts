@@ -1,14 +1,21 @@
 import { Inject, Injectable } from "@nestjs/common";
 import * as bcrypt from "bcrypt";
-import { and, eq } from "drizzle-orm";
+import { and, asc, count, eq, like, or } from "drizzle-orm";
 import { Database, DRIZZLE } from "src/db";
+import { studentDetails } from "src/db/student-details";
 import { users } from "src/db/users";
-import { randomPassword, randomStudentId } from "src/shared/helpers";
+import { randomPassword, randomStudentId } from "src/shared/helpers/random";
+import { data } from "src/shared/interfaces";
+import { CustomLogger } from "src/shared/utils/custom-logger";
 import { UsersService } from "src/users/users.service";
 import { CreateStudentDto } from "./dto/create-student.dto";
+import { GetStudentsDto } from "./dto/get-students.dto";
 import { UpdateStudentDto } from "./dto/update-student.dto";
-import { CustomLogger } from "src/shared/utils/custom-logger";
-import { data } from "src/shared/interfaces";
+import { MailService } from "src/mail/mail.service";
+import { generateNewStudentEmail } from "src/shared/helpers/email-generators";
+import { studentsToProgrammes } from "src/db/students-to-programmes";
+import { programmes } from "src/db/programmes";
+import { ProgrammesService } from "src/programmes/programmes.service";
 
 @Injectable()
 export class StudentsService {
@@ -17,12 +24,20 @@ export class StudentsService {
     @Inject(DRIZZLE)
     private readonly drizzle: Database,
     private readonly usersService: UsersService,
+    private readonly mailService: MailService,
+    private readonly programmesService: ProgrammesService,
   ) {}
 
   async create(createStudentDto: CreateStudentDto) {
     try {
-      const existingStudent = this.usersService.findByEmail(
+      const existingStudent = await this.usersService.findByEmail(
         createStudentDto.email,
+        {
+          permissions: false,
+          details: true,
+          password: false,
+          role: "student",
+        },
       );
       if (existingStudent) {
         throw new Error("Student already exists");
@@ -43,11 +58,35 @@ export class StudentsService {
         state: createStudentDto.state,
         zipCode: createStudentDto.zipCode,
         country: createStudentDto.country,
-        dateOfBirth: createStudentDto.dateOfBirth,
+        dateOfBirth: new Date(createStudentDto.dateOfBirth),
         gender: createStudentDto.gender,
         nationality: createStudentDto.nationality,
         phoneNumber: createStudentDto.phoneNumber,
-        studentId: randomStudentId(),
+        studentId: createStudentDto.studentId ?? randomStudentId(),
+      });
+      const studentDetailsId = await this.drizzle.query.users.findFirst({
+        where: eq(users.email, createStudentDto.email),
+        columns: {},
+        with: {
+          studentDetails: {
+            columns: {
+              id: true,
+            },
+          },
+        },
+      });
+      await this.programmesService.addStudentToProgramme(
+        +createStudentDto.programmeId,
+        studentDetailsId.studentDetails.id,
+      );
+      await this.mailService.sendMail({
+        to: createStudentDto.email,
+        subject: "New student account created",
+        html: generateNewStudentEmail(
+          createStudentDto.firstName,
+          createStudentDto.lastName,
+          defaultPassword,
+        ),
       });
       return {
         success: true,
@@ -68,27 +107,62 @@ export class StudentsService {
     }
   }
 
-  async findAll() {
+  async findAll(params: GetStudentsDto) {
     try {
-      const students = await this.drizzle.query.users.findMany({
-        where: eq(users.role, "student"),
-        with: {
-          studentDetails: {
-            columns: {
-              id: false,
-              userId: false,
-            },
-          },
-        },
-      });
+      const filter = params.query
+        ? or(
+            like(studentDetails.firstName, `%${params.query}%`),
+            like(studentDetails.lastName, `%${params.query}%`),
+            like(studentDetails.middleName, `%${params.query}%`),
+            like(studentDetails.studentId, `%${params.query}%`),
+            like(studentDetails.phoneNumber, `%${params.query}%`),
+          )
+        : null;
+
+      const students = await this.drizzle
+        .select()
+        .from(studentDetails)
+        .where(filter)
+        .orderBy(asc(users.id))
+        .limit(params.limit ?? 10)
+        .offset(((params.page ?? 1) - 1) * params.limit ?? 10)
+        .innerJoin(users, eq(studentDetails.userId, users.id))
+        .rightJoin(
+          studentsToProgrammes,
+          eq(studentDetails.id, studentsToProgrammes.studentId),
+        )
+        .innerJoin(
+          programmes,
+          eq(studentsToProgrammes.programmeId, programmes.id),
+        );
+
+      const total = await this.drizzle
+        .select({ count: count() })
+        .from(studentDetails)
+        .rightJoin(
+          studentsToProgrammes,
+          eq(studentDetails.id, studentsToProgrammes.studentId),
+        )
+        .innerJoin(
+          programmes,
+          eq(studentsToProgrammes.programmeId, programmes.id),
+        )
+        .where(filter);
+
       return {
-        success: true,
-        message: "Students found",
+        page: params.page ?? 1,
+        count: students.length,
+        total: total[0].count,
         data: students.map(s => ({
-          id: s.id,
-          email: s.email,
-          role: s.role,
-          details: s.studentDetails,
+          id: s.users.id,
+          email: s.users.email,
+          role: s.users.role,
+          details: {
+            ...s.student_details,
+            id: undefined,
+            userId: undefined,
+            programme: s.programmes.name,
+          },
         })),
       };
     } catch (error) {
@@ -110,6 +184,23 @@ export class StudentsService {
               id: false,
               userId: false,
             },
+            with: {
+              studentsToProgrammes: {
+                columns: {
+                  studentId: false,
+                  programmeId: false,
+                },
+                with: {
+                  programme: {
+                    columns: {
+                      id: false,
+                      programmeId: false,
+                      name: true,
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       });
@@ -121,7 +212,12 @@ export class StudentsService {
             id: student.id,
             email: student.email,
             role: student.role,
-            details: student.studentDetails,
+            details: {
+              ...student.studentDetails,
+              studentsToProgrammes: undefined,
+              programme:
+                student.studentDetails.studentsToProgrammes[0].programme.name,
+            },
           },
         };
       } else {
@@ -143,10 +239,47 @@ export class StudentsService {
     try {
       const existingStudent = data(await this.findOne(id));
       if (existingStudent) {
-        await this.usersService.updateStudentDetails(
-          existingStudent.email,
-          updateStudentDto,
+        const studentDetails = (
+          await this.drizzle.query.users.findFirst({
+            where: eq(users.id, existingStudent.id),
+            columns: {},
+            with: {
+              studentDetails: {
+                columns: {
+                  id: true,
+                },
+                with: {
+                  studentsToProgrammes: {
+                    columns: {},
+                    with: {
+                      programme: {
+                        columns: {
+                          id: true,
+                          programmeId: false,
+                          name: false,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          })
+        ).studentDetails;
+        if (studentDetails) {
+          this.programmesService.removeStudentFromProgramme(
+            studentDetails.studentsToProgrammes[0].programme.id,
+            studentDetails.id,
+          );
+        }
+        await this.programmesService.addStudentToProgramme(
+          +updateStudentDto.programmeId,
+          studentDetails.id,
         );
+        await this.usersService.updateStudentDetails(existingStudent.email, {
+          ...updateStudentDto,
+          dateOfBirth: new Date(updateStudentDto.dateOfBirth),
+        });
         return {
           success: true,
           message: "Student updated",

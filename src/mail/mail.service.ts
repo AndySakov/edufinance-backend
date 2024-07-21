@@ -9,7 +9,6 @@ export class MailService {
   ) {}
 
   sendMail = async (mailOptions: Parameters<Mailer["sendMail"]>[0]) => {
-    const util = await import("node:util");
-    return util.promisify(this.mailer.sendMail)(mailOptions);
+    return this.mailer.sendMail(mailOptions);
   };
 }

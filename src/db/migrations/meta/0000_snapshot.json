@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "0231d3b1-9e99-4ad4-bb40-1df2350bb752",
+  "id": "5ba38420-5230-483f-82d6-9d88832697b6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "admin_details": {
@@ -42,12 +42,8 @@
           "name": "admin_details_user_id_users_id_fk",
           "tableFrom": "admin_details",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -55,61 +51,9 @@
       "compositePrimaryKeys": {
         "admin_details_id": {
           "name": "admin_details_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
-      "uniqueConstraints": {}
-    },
-    "applications_to_discounts": {
-      "name": "applications_to_discounts",
-      "columns": {
-        "application_id": {
-          "name": "application_id",
-          "type": "bigint unsigned",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "discount_id": {
-          "name": "discount_id",
-          "type": "bigint unsigned",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "fk_applications_to_discounts_application_id": {
-          "name": "fk_applications_to_discounts_application_id",
-          "tableFrom": "applications_to_discounts",
-          "tableTo": "financial_aid_applications",
-          "columnsFrom": [
-            "application_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "fk_applications_to_discounts_discount_id": {
-          "name": "fk_applications_to_discounts_discount_id",
-          "tableFrom": "applications_to_discounts",
-          "tableTo": "financial_aid_discounts",
-          "columnsFrom": [
-            "discount_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
     "bill_types": {
@@ -151,9 +95,7 @@
       "compositePrimaryKeys": {
         "bill_types_id": {
           "name": "bill_types_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -167,6 +109,13 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
         },
         "amount_due": {
           "name": "amount_due",
@@ -196,30 +145,9 @@
           "notNull": true,
           "autoincrement": false
         },
-        "remaining_installments": {
-          "name": "remaining_installments",
-          "type": "bigint unsigned",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
         "bill_type_id": {
           "name": "bill_type_id",
           "type": "bigint unsigned",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "payee_id": {
-          "name": "payee_id",
-          "type": "bigint unsigned",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "paid_in_full": {
-          "name": "paid_in_full",
-          "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -247,25 +175,8 @@
           "name": "bills_bill_type_id_bill_types_id_fk",
           "tableFrom": "bills",
           "tableTo": "bill_types",
-          "columnsFrom": [
-            "bill_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
-        },
-        "bills_payee_id_users_id_fk": {
-          "name": "bills_payee_id_users_id_fk",
-          "tableFrom": "bills",
-          "tableTo": "users",
-          "columnsFrom": [
-            "payee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["bill_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -273,9 +184,7 @@
       "compositePrimaryKeys": {
         "bills_id": {
           "name": "bills_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -301,7 +210,7 @@
           "name": "type_id",
           "type": "bigint unsigned",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "status": {
@@ -348,12 +257,8 @@
           "name": "financial_aid_applications_applicant_id_student_details_id_fk",
           "tableFrom": "financial_aid_applications",
           "tableTo": "student_details",
-          "columnsFrom": [
-            "applicant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["applicant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -361,12 +266,8 @@
           "name": "financial_aid_applications_type_id_financial_aid_types_id_fk",
           "tableFrom": "financial_aid_applications",
           "tableTo": "financial_aid_types",
-          "columnsFrom": [
-            "type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -374,9 +275,7 @@
       "compositePrimaryKeys": {
         "financial_aid_applications_id": {
           "name": "financial_aid_applications_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -400,6 +299,13 @@
         },
         "bill_type_id": {
           "name": "bill_type_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "financial_aid_type_id": {
+          "name": "financial_aid_type_id",
           "type": "bigint unsigned",
           "primaryKey": false,
           "notNull": true,
@@ -435,22 +341,25 @@
           "name": "financial_aid_discounts_bill_type_id_bill_types_id_fk",
           "tableFrom": "financial_aid_discounts",
           "tableTo": "bill_types",
-          "columnsFrom": [
-            "bill_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["bill_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "fk_financial_aid_discounts_financial_aid_type_id": {
+          "name": "fk_financial_aid_discounts_financial_aid_type_id",
+          "tableFrom": "financial_aid_discounts",
+          "tableTo": "financial_aid_types",
+          "columnsFrom": ["financial_aid_type_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
         "financial_aid_discounts_id": {
           "name": "financial_aid_discounts_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -494,9 +403,7 @@
       "compositePrimaryKeys": {
         "financial_aid_types_id": {
           "name": "financial_aid_types_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -540,9 +447,7 @@
       "compositePrimaryKeys": {
         "payment_types_id": {
           "name": "payment_types_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -629,25 +534,17 @@
           "name": "payments_bill_id_bills_id_fk",
           "tableFrom": "payments",
           "tableTo": "bills",
-          "columnsFrom": [
-            "bill_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["bill_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "payments_payer_id_users_id_fk": {
-          "name": "payments_payer_id_users_id_fk",
+        "payments_payer_id_student_details_id_fk": {
+          "name": "payments_payer_id_student_details_id_fk",
           "tableFrom": "payments",
-          "tableTo": "users",
-          "columnsFrom": [
-            "payer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "tableTo": "student_details",
+          "columnsFrom": ["payer_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -655,12 +552,8 @@
           "name": "payments_payment_type_id_payment_types_id_fk",
           "tableFrom": "payments",
           "tableTo": "payment_types",
-          "columnsFrom": [
-            "payment_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -668,17 +561,13 @@
       "compositePrimaryKeys": {
         "payments_id": {
           "name": "payments_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "payments_payment_reference_unique": {
           "name": "payments_payment_reference_unique",
-          "columns": [
-            "payment_reference"
-          ]
+          "columns": ["payment_reference"]
         }
       }
     },
@@ -705,9 +594,7 @@
       "compositePrimaryKeys": {
         "permissions_id": {
           "name": "permissions_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -758,17 +645,13 @@
       "compositePrimaryKeys": {
         "programmes_id": {
           "name": "programmes_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "programmes_programme_id_unique": {
           "name": "programmes_programme_id_unique",
-          "columns": [
-            "programme_id"
-          ]
+          "columns": ["programme_id"]
         }
       }
     },
@@ -826,25 +709,17 @@
           "name": "receipts_payment_id_payments_id_fk",
           "tableFrom": "receipts",
           "tableTo": "payments",
-          "columnsFrom": [
-            "payment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "receipts_payee_id_users_id_fk": {
-          "name": "receipts_payee_id_users_id_fk",
+        "receipts_payee_id_student_details_id_fk": {
+          "name": "receipts_payee_id_student_details_id_fk",
           "tableFrom": "receipts",
-          "tableTo": "users",
-          "columnsFrom": [
-            "payee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "tableTo": "student_details",
+          "columnsFrom": ["payee_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -852,17 +727,13 @@
       "compositePrimaryKeys": {
         "receipts_id": {
           "name": "receipts_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "receipts_receipt_id_unique": {
           "name": "receipts_receipt_id_unique",
-          "columns": [
-            "receipt_id"
-          ]
+          "columns": ["receipt_id"]
         }
       }
     },
@@ -927,25 +798,17 @@
           "name": "refunds_payment_id_payments_id_fk",
           "tableFrom": "refunds",
           "tableTo": "payments",
-          "columnsFrom": [
-            "payment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "refunds_payee_id_users_id_fk": {
-          "name": "refunds_payee_id_users_id_fk",
+        "refunds_payee_id_student_details_id_fk": {
+          "name": "refunds_payee_id_student_details_id_fk",
           "tableFrom": "refunds",
-          "tableTo": "users",
-          "columnsFrom": [
-            "payee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "tableTo": "student_details",
+          "columnsFrom": ["payee_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -953,9 +816,7 @@
       "compositePrimaryKeys": {
         "refunds_id": {
           "name": "refunds_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -1075,12 +936,8 @@
           "name": "student_details_user_id_users_id_fk",
           "tableFrom": "student_details",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -1088,17 +945,13 @@
       "compositePrimaryKeys": {
         "student_details_id": {
           "name": "student_details_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {
         "student_details_student_id_unique": {
           "name": "student_details_student_id_unique",
-          "columns": [
-            "student_id"
-          ]
+          "columns": ["student_id"]
         }
       }
     },
@@ -1126,12 +979,8 @@
           "name": "students_to_programmes_student_id_student_details_id_fk",
           "tableFrom": "students_to_programmes",
           "tableTo": "student_details",
-          "columnsFrom": [
-            "student_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["student_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1139,12 +988,8 @@
           "name": "students_to_programmes_programme_id_programmes_id_fk",
           "tableFrom": "students_to_programmes",
           "tableTo": "programmes",
-          "columnsFrom": [
-            "programme_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["programme_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1152,10 +997,7 @@
       "compositePrimaryKeys": {
         "students_to_programmes_student_id_programme_id_pk": {
           "name": "students_to_programmes_student_id_programme_id_pk",
-          "columns": [
-            "student_id",
-            "programme_id"
-          ]
+          "columns": ["student_id", "programme_id"]
         }
       },
       "uniqueConstraints": {}
@@ -1199,9 +1041,7 @@
       "compositePrimaryKeys": {
         "support_ticket_categories_id": {
           "name": "support_ticket_categories_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -1274,12 +1114,8 @@
           "name": "support_tickets_category_id_support_ticket_categories_id_fk",
           "tableFrom": "support_tickets",
           "tableTo": "support_ticket_categories",
-          "columnsFrom": [
-            "category_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["category_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -1287,12 +1123,8 @@
           "name": "support_tickets_handler_id_users_id_fk",
           "tableFrom": "support_tickets",
           "tableTo": "users",
-          "columnsFrom": [
-            "handler_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["handler_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1300,9 +1132,7 @@
       "compositePrimaryKeys": {
         "support_tickets_id": {
           "name": "support_tickets_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
       "uniqueConstraints": {}
@@ -1360,12 +1190,15 @@
       "compositePrimaryKeys": {
         "users_id": {
           "name": "users_id",
-          "columns": [
-            "id"
-          ]
+          "columns": ["id"]
         }
       },
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "columns": ["email"]
+        }
+      }
     },
     "users_to_permissions": {
       "name": "users_to_permissions",
@@ -1391,12 +1224,8 @@
           "name": "users_to_permissions_user_id_users_id_fk",
           "tableFrom": "users_to_permissions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1404,12 +1233,8 @@
           "name": "users_to_permissions_permission_id_permissions_id_fk",
           "tableFrom": "users_to_permissions",
           "tableTo": "permissions",
-          "columnsFrom": [
-            "permission_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["permission_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1417,10 +1242,7 @@
       "compositePrimaryKeys": {
         "users_to_permissions_user_id_permission_id_pk": {
           "name": "users_to_permissions_user_id_permission_id_pk",
-          "columns": [
-            "user_id",
-            "permission_id"
-          ]
+          "columns": ["user_id", "permission_id"]
         }
       },
       "uniqueConstraints": {}

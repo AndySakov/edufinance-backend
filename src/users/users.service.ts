@@ -123,6 +123,7 @@ export class UsersService {
             password: withPassword ? user.password : undefined,
             details: withDetails ? details : null,
             permissions: withPermissions ? permissions : null,
+            programme: null,
           }
         : null;
     } catch (error) {
@@ -140,6 +141,7 @@ export class UsersService {
           .update(users)
           .set({
             password: hashedPassword,
+            updatedAt: new Date(),
           })
           .where(eq(users.email, email));
       }
@@ -174,7 +176,7 @@ export class UsersService {
       if (permissionsToCreate.length > 0) {
         await this.drizzle.insert(permissions).values(permissionsToCreate);
         this.logger.log(
-          `${permissionsToCreate.length} new permissions created`,
+          `${permissionsToCreate.length} new permission${permissionsToCreate.length > 1 ? "s" : ""} created`,
         );
       }
     } catch (error) {
@@ -197,9 +199,9 @@ export class UsersService {
       });
       if (existingUser) {
         await this.drizzle.transaction(async tx => {
-          tx.delete(usersToPermissions).where(
-            eq(usersToPermissions.userId, BigInt(existingUser.id)),
-          );
+          await tx
+            .delete(usersToPermissions)
+            .where(eq(usersToPermissions.userId, BigInt(existingUser.id)));
           await tx.insert(usersToPermissions).values(
             permissionsToAssign.map(permission => ({
               userId: BigInt(existingUser.id),

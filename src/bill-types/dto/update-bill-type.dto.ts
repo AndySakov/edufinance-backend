@@ -1,4 +1,4 @@
-import { PartialType } from '@nestjs/swagger';
-import { CreateBillTypeDto } from './create-bill-type.dto';
+import { PartialType } from "@nestjs/swagger";
+import { CreateBillTypeDto } from "./create-bill-type.dto";
 
-export class UpdateBillTypeDto extends PartialType(CreateBillTypeDto) {}
+export class UpdateBillTypeDto extends CreateBillTypeDto {}

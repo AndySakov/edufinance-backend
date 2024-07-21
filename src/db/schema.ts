@@ -1,6 +1,6 @@
 export * from "./admin-details";
-export * from "./applications-to-discounts";
 export * from "./bill-types";
+export * from "./bills-to-payees";
 export * from "./bills";
 export * from "./financial-aid-applications";
 export * from "./financial-aid-discounts";

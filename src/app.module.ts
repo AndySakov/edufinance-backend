@@ -13,7 +13,18 @@ import { MailModule } from "./mail/mail.module";
 import { UsersModule } from "./users/users.module";
 import { UsersService } from "./users/users.service";
 import { StudentsModule } from "./students/students.module";
-import { BillTypesModule } from './bill-types/bill-types.module';
+import { BillsModule } from "./bills/bills.module";
+import { ProgrammesModule } from "./programmes/programmes.module";
+import { SeederModule } from "./seeder/seeder.module";
+import { PaymentCategoryModule } from "./payment-category/payment-category.module";
+import { BillTypeModule } from "./bill-types/bill-types.module";
+import { FinancialAidTypesModule } from "./financial-aid-types/financial-aid-types.module";
+import { FinancialAidDiscountsModule } from "./financial-aid-discounts/financial-aid-discounts.module";
+import { FinancialAidApplicationsModule } from "./financial-aid-applications/financial-aid-applications.module";
+import { PaymentsModule } from "./payments/payments.module";
+import { StudentModule } from "./student/student.module";
+import { TransactionModule } from "./transaction/transaction.module";
+import { PaymentCategoryService } from "./payment-category/payment-category.service";
 
 @Module({
   imports: [
@@ -48,7 +59,17 @@ import { BillTypesModule } from './bill-types/bill-types.module';
     AdminsModule,
     MailModule,
     StudentsModule,
-    BillTypesModule,
+    BillsModule,
+    BillTypeModule,
+    ProgrammesModule,
+    SeederModule,
+    PaymentCategoryModule,
+    FinancialAidTypesModule,
+    FinancialAidDiscountsModule,
+    FinancialAidApplicationsModule,
+    PaymentsModule,
+    StudentModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -58,6 +79,7 @@ export class AppModule implements OnModuleInit {
     @Inject(DRIZZLE) private readonly drizzle: Database,
     private readonly configService: ConfigService,
     private readonly userService: UsersService,
+    private readonly paymentCategoryService: PaymentCategoryService,
   ) {}
 
   async onModuleInit() {
@@ -67,5 +89,6 @@ export class AppModule implements OnModuleInit {
       this.configService.get<string>("SUPER_ADMIN_EMAIL"),
       this.configService.get<string>("SUPER_ADMIN_PASSWORD"),
     );
+    await this.paymentCategoryService.seedPaystack();
   }
 }

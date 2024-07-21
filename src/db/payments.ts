@@ -11,8 +11,8 @@ import {
 import { receipts } from "./receipts";
 import { bills } from "./bills";
 import { paymentTypes } from "./payment-types";
-import { users } from "./users";
 import { refunds } from "./refunds";
+import { studentDetails } from "./student-details";
 
 export const payments = mysqlTable("payments", {
   id: serial("id").primaryKey(),
@@ -20,7 +20,7 @@ export const payments = mysqlTable("payments", {
     .references(() => bills.id, { onDelete: "cascade" })
     .notNull(),
   payerId: bigint("payer_id", { mode: "bigint", unsigned: true })
-    .references(() => users.id, { onDelete: "cascade" })
+    .references(() => studentDetails.id, { onDelete: "cascade" })
     .notNull(),
   paymentTypeId: bigint("payment_type_id", { mode: "bigint", unsigned: true })
     .references(() => paymentTypes.id, { onDelete: "cascade" })
@@ -35,7 +35,9 @@ export const payments = mysqlTable("payments", {
     "refunded",
   ]).notNull(),
   paymentNote: varchar("payment_note", { length: 128 }),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 })
+    .notNull()
+    .$type<number>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -45,9 +47,9 @@ export const paymentsRelations = relations(payments, ({ one, many }) => ({
     fields: [payments.billId],
     references: [bills.id],
   }),
-  payer: one(users, {
+  payer: one(studentDetails, {
     fields: [payments.payerId],
-    references: [users.id],
+    references: [studentDetails.id],
   }),
   type: one(paymentTypes, {
     fields: [payments.paymentTypeId],

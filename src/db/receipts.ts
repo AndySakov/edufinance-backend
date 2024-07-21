@@ -7,7 +7,7 @@ import {
 } from "drizzle-orm/mysql-core";
 import { payments } from "./payments";
 import { relations } from "drizzle-orm";
-import { users } from "./users";
+import { studentDetails } from "./student-details";
 
 export const receipts = mysqlTable("receipts", {
   id: serial("id").primaryKey(),
@@ -15,7 +15,7 @@ export const receipts = mysqlTable("receipts", {
     .references(() => payments.id, { onDelete: "cascade" })
     .notNull(),
   payeeId: bigint("payee_id", { mode: "bigint", unsigned: true })
-    .references(() => users.id, { onDelete: "cascade" })
+    .references(() => studentDetails.id, { onDelete: "cascade" })
     .notNull(),
   receiptId: varchar("receipt_id", { length: 128 }).notNull().unique(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -27,9 +27,9 @@ export const receiptsRelations = relations(receipts, ({ one }) => ({
     fields: [receipts.paymentId],
     references: [payments.id],
   }),
-  payee: one(users, {
+  payee: one(studentDetails, {
     fields: [receipts.payeeId],
-    references: [users.id],
+    references: [studentDetails.id],
   }),
 }));
 

@@ -9,6 +9,11 @@ import {
 import { users } from "./users";
 import { relations } from "drizzle-orm";
 import { studentsToProgrammes } from "./students-to-programmes";
+import { bills } from "./bills";
+import { financialAidApplications } from "./financial-aid-applications";
+import { payments } from "./payments";
+import { receipts } from "./receipts";
+import { refunds } from "./refunds";
 
 export const studentDetails = mysqlTable("student_details", {
   id: serial("id").primaryKey(),
@@ -37,6 +42,11 @@ export const studentDetailsRelations = relations(
       fields: [studentDetails.userId],
       references: [users.id],
     }),
+    bills: many(bills),
+    refunds: many(refunds),
+    receipts: many(receipts),
+    payments: many(payments),
+    financialAidApplications: many(financialAidApplications),
     studentsToProgrammes: many(studentsToProgrammes),
   }),
 );

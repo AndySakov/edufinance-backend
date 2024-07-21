@@ -49,7 +49,7 @@ export class AuthService {
         role: true,
       },
     });
-    if (user.email) {
+    if (user?.email) {
       const isValid = await this.validatePassword(user.password, body.password);
       if (isValid) {
         const userWithDetails = await this.usersService.findByEmail(
@@ -107,7 +107,7 @@ export class AuthService {
 
   createToken(claim: {
     email: string;
-    role: string;
+    role: User["role"];
     permissions: string[];
   }): string {
     const token = this.jwtService.sign(claim, this.jwtConfig);
@@ -126,7 +126,7 @@ export class AuthService {
 
   decodeToken(
     token: string,
-  ): { email: string; role: string; permissions: string[] } | null {
+  ): { email: string; role: User["role"]; permissions: string[] } | null {
     try {
       return this.jwtService.decode(token, this.jwtConfig);
     } catch (error) {

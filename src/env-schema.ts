@@ -22,6 +22,12 @@ const envSchema = Joi.object({
   DB_PORT: Joi.number().default(3306),
   SUPER_ADMIN_EMAIL: Joi.string().email(),
   SUPER_ADMIN_PASSWORD: Joi.string(),
+  PAYSTACK_SECRET_KEY: Joi.string(),
+  PAYSTACK_PUBLIC_KEY: Joi.string(),
+  PAYSTACK_WEBHOOK_IP_WHITELIST: Joi.string(),
+  CLOUDINARY_NAME: Joi.string(),
+  CLOUDINARY_API_KEY: Joi.string(),
+  CLOUDINARY_API_SECRET: Joi.string(),
 });
 
 export default envSchema;

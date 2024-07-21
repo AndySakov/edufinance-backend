@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
+  ValidationPipe,
 } from "@nestjs/common";
 import { StudentsService } from "./students.service";
 import { CreateStudentDto } from "./dto/create-student.dto";
@@ -15,6 +17,7 @@ import { RBACGuard } from "src/auth/rbac.guard";
 import { Permissions, Roles } from "src/shared/decorators";
 import { UserRoles } from "src/shared/constants";
 import { AdminPermissions } from "src/shared/constants/admin-permissions";
+import { GetStudentsDto } from "./dto/get-students.dto";
 
 @Controller("students")
 @UseGuards(RBACGuard)
@@ -29,8 +32,11 @@ export class StudentsController {
   }
 
   @Get()
-  findAll() {
-    return this.studentsService.findAll();
+  findAll(
+    @Query(new ValidationPipe({ transform: true }))
+    params: GetStudentsDto,
+  ) {
+    return this.studentsService.findAll(params);
   }
 
   @Get(":id")

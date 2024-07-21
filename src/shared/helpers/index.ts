@@ -3,8 +3,13 @@ import {
   SchemaObject,
   ReferenceObject,
 } from "@nestjs/swagger/dist/interfaces/open-api-spec.interface";
-import ShortUniqueId from "short-unique-id";
 import { PaginatedData } from "../interfaces";
+import {
+  ConfigOptions,
+  UploadApiErrorResponse,
+  UploadApiResponse,
+  v2 as cloudinary,
+} from "cloudinary";
 
 export const responseSchemaWrapper = (
   child: SchemaObject | ReferenceObject,
@@ -42,24 +47,6 @@ export const paginate = <T>(
   };
 };
 
-export const randomToken = (): string => {
-  const uid = new ShortUniqueId();
-  const generate = uid.randomUUID(64);
-  return generate;
-};
-
-export const randomPassword = (): string => {
-  const uid = new ShortUniqueId();
-  const generate = uid.randomUUID(8);
-  return generate;
-};
-
-export const randomStudentId = (): string => {
-  const uid = new ShortUniqueId({ dictionary: "alphanum_upper" });
-  const generate = uid.randomUUID(8);
-  return generate;
-};
-
 export const obfuscate = (value: string | null): string | null => {
   if (value) {
     const lastFour = value.slice(-4);
@@ -69,4 +56,26 @@ export const obfuscate = (value: string | null): string | null => {
   } else {
     return null;
   }
+};
+
+export const uploadFile = async (
+  file: Buffer,
+  options: ConfigOptions,
+): Promise<UploadApiResponse | UploadApiErrorResponse | null> => {
+  if (!file) {
+    console.log("Cannot upload empty file");
+    return null;
+  }
+  cloudinary.config(options);
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream({ resource_type: "auto" }, (error, result) => {
+        if (error) {
+          return reject(error);
+        } else {
+          return resolve(result);
+        }
+      })
+      .end(file);
+  });
 };
