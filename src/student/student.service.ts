@@ -106,7 +106,7 @@ export class StudentService {
               .filter(x => x.status === "paid")
               .map(payment => payment.amount)
               .reduce((acc, x) => acc + x, 0)) -
-          (financialAidInfo.discounts.find(
+          (financialAidInfo?.discounts?.find(
             discount => discount.billType === bill.billType,
           )?.amount ?? 0)
         );
@@ -123,7 +123,7 @@ export class StudentService {
             .map(payment => payment.amount)
             .reduce((acc, x) => acc + x, 0);
           const totalDiscounted =
-            financialAidInfo.discounts.find(
+            financialAidInfo?.discounts?.find(
               discount => discount.billType === bill.billType,
             )?.amount ?? 0;
           return bill.amountDue - totalPaid - totalDiscounted === 0;
@@ -134,7 +134,7 @@ export class StudentService {
             .map(payment => payment.amount)
             .reduce((acc, x) => acc + x, 0);
           const totalDiscounted =
-            financialAidInfo.discounts.find(
+            financialAidInfo?.discounts?.find(
               discount => discount.billType === bill.billType,
             )?.amount ?? 0;
           return bill.amountDue - totalPaid - totalDiscounted > 0;
