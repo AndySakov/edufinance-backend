@@ -211,12 +211,14 @@ export class ProgrammesService {
           [],
         );
 
-        await this.drizzle.insert(billsToPayees).values(
-          pendingBills.map(bill => ({
-            billId: BigInt(bill.id),
-            payeeId: BigInt(studentId),
-          })),
-        );
+        if (pendingBills.length > 0) {
+          await this.drizzle.insert(billsToPayees).values(
+            pendingBills.map(bill => ({
+              billId: BigInt(bill.id),
+              payeeId: BigInt(studentId),
+            })),
+          );
+        }
       }
     } catch (error) {
       this.logger.error(`Error adding student to programme: ${error}`);
