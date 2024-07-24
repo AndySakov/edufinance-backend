@@ -1368,6 +1368,11 @@
   dependencies:
     undici-types "~5.26.4"
 
+"@types/node@^14.14.20":
+  version "14.18.63"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.18.63.tgz#1788fa8da838dbb5f9ea994b834278205db6ca2b"
+  integrity sha512-fAtCfv4jJg+ExtXhvCkCqUKZ+4ok/JQk01qDKhL5BDDoS3AxKXhV5/MAVUZyQnSEd2GT92fkgZl0pz0Q0AzcIQ==
+
 "@types/nodemailer@^6.4.15":
   version "6.4.15"
   resolved "https://registry.yarnpkg.com/@types/nodemailer/-/nodemailer-6.4.15.tgz#494be695e11c438f7f5df738fb4ab740312a6ed2"
@@ -4711,6 +4716,14 @@ passport-jwt@^4.0.1:
   dependencies:
     jsonwebtoken "^9.0.0"
     passport-strategy "^1.0.0"
+
+passport-magic-login@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/passport-magic-login/-/passport-magic-login-1.2.2.tgz#5d2f8726f3fb426d6a57fa90999d212fc03ee1b4"
+  integrity sha512-KBzxei/qvt2UDkS1qXz2VR2XajbWB5808W+oDpeMsfGqMgBKicaDX7HOrgAVpvw2q+fWOuh21LWe+kYyZPogDA==
+  dependencies:
+    "@types/node" "^14.14.20"
+    jsonwebtoken "^9.0.0"
 
 passport-strategy@1.x.x, passport-strategy@^1.0.0:
   version "1.0.0"

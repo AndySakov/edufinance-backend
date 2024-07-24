@@ -5,13 +5,14 @@ import { Database, DRIZZLE } from "src/db";
 import { users } from "src/db/users";
 import { MailService } from "src/mail/mail.service";
 import { randomPassword } from "src/shared/helpers/random";
-import { generateNewAdminEmail } from "src/shared/helpers/email-generators";
+import { generateNewUserEmail } from "src/shared/helpers/email-generators";
 import { data } from "src/shared/interfaces";
 import { CustomLogger } from "src/shared/utils/custom-logger";
 import { UsersService } from "src/users/users.service";
 import { CreateAdminDto } from "./dto/create-admin.dto";
 import { UpdateAdminDto } from "./dto/update-admin.dto";
 import { UpdatePermissionsDto } from "./dto/update-permissions.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AdminsService {
@@ -20,6 +21,7 @@ export class AdminsService {
     @Inject(DRIZZLE) private readonly drizzle: Database,
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createAdminDto: CreateAdminDto) {
@@ -54,12 +56,15 @@ export class AdminsService {
         createAdminDto.email,
         createAdminDto.permissions,
       );
+      const loginUrl = `${this.configService.get<string>("FE_DOMAIN")}/login`;
       await this.mailService.sendMail({
         to: createAdminDto.email,
         subject: "New admin account created",
-        html: generateNewAdminEmail(
+        html: generateNewUserEmail(
           createAdminDto.firstName,
           createAdminDto.lastName,
+          createAdminDto.email,
+          loginUrl,
           defaultPass,
         ),
       });

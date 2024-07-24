@@ -16,7 +16,8 @@ import { randomTransactionReference } from "src/shared/helpers/random";
 import { CustomLogger } from "src/shared/utils/custom-logger";
 import { HttpService } from "@nestjs/axios";
 import { AxiosError } from "axios";
-import { ref } from "joi";
+import { MailService } from "src/mail/mail.service";
+import { generateNewReceiptEmail } from "src/shared/helpers/email-generators";
 
 @Injectable()
 export class TransactionService {
@@ -26,6 +27,7 @@ export class TransactionService {
     private readonly billsService: BillsService,
     private readonly paymentsService: PaymentsService,
     private readonly studentService: StudentService,
+    private readonly mailService: MailService,
     private readonly paymentCategoryService: PaymentCategoryService,
   ) {}
 
@@ -140,6 +142,28 @@ export class TransactionService {
           `Payment marked as paid (${res.data.status}): ${res.data.reference}`,
         );
         await this.paymentsService.updateStatus(payment.id, "paid");
+        const paymentDetails =
+          await this.studentService.getMyPaymentByReference(
+            res.data.customer.email,
+            res.data.reference,
+          );
+        if (paymentDetails.success) {
+          await this.mailService.sendMail({
+            to: res.data.customer.email,
+            subject: "Payment Receipt",
+            html: generateNewReceiptEmail(
+              paymentDetails.data.studentName,
+              paymentDetails.data.amount,
+              new Date(),
+              paymentDetails.data.bill.name,
+              {
+                subTotal: paymentDetails.data.bill.amountDue,
+                discountsApplied: paymentDetails.data.bill.discounts,
+                amountPaid: paymentDetails.data.amount,
+              },
+            ),
+          });
+        }
       } else {
         if (res.data.status === "failed") {
           this.logger.log(

@@ -134,7 +134,9 @@ export class UsersService {
 
   async updateUserPassword(email: string, password: string) {
     try {
-      const existingUser = await this.findByEmail(email);
+      const existingUser = await this.findByEmail(email, {
+        details: false,
+      });
       if (existingUser) {
         const hashedPassword = await bcrypt.hash(password, 10);
         await this.drizzle

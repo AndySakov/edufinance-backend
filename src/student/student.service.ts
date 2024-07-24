@@ -188,14 +188,14 @@ export class StudentService {
   }
 
   async getMyFinancialAidInformation(email: string) {
-    const successfulApplication = data(
-      await this.getMyApplications(email),
-    ).find(a => a.status === "approved");
+    const mostRecentSuccessful = data(await this.getMyApplications(email))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .find(a => a.status === "approved");
 
-    if (successfulApplication) {
+    if (mostRecentSuccessful) {
       const details =
         await this.drizzle.query.financialAidApplications.findFirst({
-          where: eq(financialAidApplications.id, successfulApplication.id),
+          where: eq(financialAidApplications.id, mostRecentSuccessful.id),
           columns: {},
           with: {
             type: {
@@ -223,7 +223,7 @@ export class StudentService {
           success: true,
           message: "Financial aid information found",
           data: {
-            ...successfulApplication,
+            ...mostRecentSuccessful,
             discounts: details.type.financialAidDiscounts.map(
               financialAidDiscount => ({
                 name: financialAidDiscount.name,
@@ -302,6 +302,10 @@ export class StudentService {
     try {
       const id = await this.getStudentId(email);
 
+      const financialAidInfo = data(
+        await this.getMyFinancialAidInformation(email),
+      );
+
       const results = await this.drizzle.query.billsToPayees.findMany({
         where: eq(billsToPayees.payeeId, BigInt(id)),
         columns: {},
@@ -325,6 +329,13 @@ export class StudentService {
                     columns: {
                       name: true,
                       amount: true,
+                    },
+                    with: {
+                      financialAidType: {
+                        columns: {
+                          name: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -365,10 +376,15 @@ export class StudentService {
               type: payment.type.name,
             })) ?? [],
           discounts:
-            res?.bill?.billType?.discounts?.map(discount => ({
-              name: discount.name,
-              amount: discount.amount,
-            })) ?? [],
+            res?.bill?.billType?.discounts
+              ?.filter(
+                discount =>
+                  discount.financialAidType.name === financialAidInfo.type,
+              )
+              .map(discount => ({
+                name: discount.name,
+                amount: discount.amount,
+              })) ?? [],
         })),
       };
     } catch (error) {
@@ -382,6 +398,10 @@ export class StudentService {
 
   async getMyPayments(email: string) {
     const id = await this.getStudentId(email);
+
+    const financialAidInfo = data(
+      await this.getMyFinancialAidInformation(email),
+    );
 
     const results = await this.drizzle.query.payments.findMany({
       where: eq(payments.payerId, BigInt(id)),
@@ -397,7 +417,48 @@ export class StudentService {
       with: {
         bill: {
           columns: {
+            id: true,
             name: true,
+            amountDue: true,
+            dueDate: true,
+            installmentSupported: true,
+            maxInstallments: true,
+          },
+          with: {
+            billType: {
+              columns: {
+                name: true,
+              },
+              with: {
+                discounts: {
+                  columns: {
+                    name: true,
+                    amount: true,
+                  },
+                  with: {
+                    financialAidType: {
+                      columns: {
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            payments: {
+              where: eq(payments.payerId, id),
+              columns: {
+                status: true,
+                amount: true,
+              },
+              with: {
+                type: {
+                  columns: {
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
         type: {
@@ -413,7 +474,32 @@ export class StudentService {
       message: "Student payments found",
       data: results.map(payment => ({
         id: payment.id,
-        bill: payment.bill.name,
+        billName: payment.bill.name,
+        bill: {
+          id: payment.bill.id,
+          name: payment.bill.name,
+          dueDate: payment.bill.dueDate,
+          amountDue: payment.bill.amountDue,
+          billType: payment.bill.billType.name,
+          maxInstallments: payment.bill.maxInstallments,
+          installmentSupported: payment.bill.installmentSupported,
+          payments:
+            payment?.bill?.payments?.map(payment => ({
+              status: payment.status,
+              amount: payment.amount,
+              type: payment.type.name,
+            })) ?? [],
+          discounts:
+            payment?.bill?.billType?.discounts
+              ?.filter(
+                discount =>
+                  discount.financialAidType.name === financialAidInfo.type,
+              )
+              .map(discount => ({
+                name: discount.name,
+                amount: discount.amount,
+              })) ?? [],
+        },
         paymentType: payment.type.name,
         paymentReference: payment.paymentReference,
         status: payment.status,
@@ -423,6 +509,136 @@ export class StudentService {
         updatedAt: payment.updatedAt,
       })),
     };
+  }
+
+  async getMyPaymentByReference(email: string, reference: string) {
+    const id = await this.getStudentId(email);
+
+    const financialAidInfo = data(
+      await this.getMyFinancialAidInformation(email),
+    );
+
+    const student = data(await this.getMyProfile(email));
+
+    const payment = await this.drizzle.query.payments.findFirst({
+      where: and(
+        eq(payments.payerId, BigInt(id)),
+        eq(payments.paymentReference, reference),
+      ),
+      columns: {
+        id: true,
+        paymentReference: true,
+        status: true,
+        paymentNote: true,
+        amount: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      with: {
+        bill: {
+          columns: {
+            id: true,
+            name: true,
+            amountDue: true,
+            dueDate: true,
+            installmentSupported: true,
+            maxInstallments: true,
+          },
+          with: {
+            billType: {
+              columns: {
+                name: true,
+              },
+              with: {
+                discounts: {
+                  columns: {
+                    name: true,
+                    amount: true,
+                  },
+                  with: {
+                    financialAidType: {
+                      columns: {
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            payments: {
+              where: eq(payments.payerId, id),
+              columns: {
+                status: true,
+                amount: true,
+              },
+              with: {
+                type: {
+                  columns: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        type: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+      orderBy: desc(payments.updatedAt),
+    });
+
+    if (payment) {
+      return {
+        success: true,
+        message: "Student payment found",
+        data: {
+          id: payment.id,
+          studentName:
+            student.details.firstName + " " + student.details.lastName,
+          billName: payment.bill.name,
+          bill: {
+            id: payment.bill.id,
+            name: payment.bill.name,
+            dueDate: payment.bill.dueDate,
+            amountDue: payment.bill.amountDue,
+            billType: payment.bill.billType.name,
+            maxInstallments: payment.bill.maxInstallments,
+            installmentSupported: payment.bill.installmentSupported,
+            payments:
+              payment?.bill?.payments?.map(payment => ({
+                status: payment.status,
+                amount: payment.amount,
+                type: payment.type.name,
+              })) ?? [],
+            discounts:
+              payment?.bill?.billType?.discounts
+                ?.filter(
+                  discount =>
+                    discount.financialAidType.name === financialAidInfo.type,
+                )
+                .map(discount => ({
+                  name: discount.name,
+                  amount: discount.amount,
+                })) ?? [],
+          },
+          paymentType: payment.type.name,
+          paymentReference: payment.paymentReference,
+          status: payment.status,
+          paymentNote: payment.paymentNote,
+          amount: payment.amount,
+          createdAt: payment.createdAt,
+          updatedAt: payment.updatedAt,
+        },
+      };
+    } else {
+      return {
+        success: false,
+        message: "Student payment not found",
+      };
+    }
   }
 
   async applyForFinancialAid(

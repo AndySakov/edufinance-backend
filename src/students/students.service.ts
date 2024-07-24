@@ -12,10 +12,11 @@ import { CreateStudentDto } from "./dto/create-student.dto";
 import { GetStudentsDto } from "./dto/get-students.dto";
 import { UpdateStudentDto } from "./dto/update-student.dto";
 import { MailService } from "src/mail/mail.service";
-import { generateNewStudentEmail } from "src/shared/helpers/email-generators";
 import { studentsToProgrammes } from "src/db/students-to-programmes";
 import { programmes } from "src/db/programmes";
 import { ProgrammesService } from "src/programmes/programmes.service";
+import { generateNewUserEmail } from "src/shared/helpers/email-generators";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class StudentsService {
@@ -25,6 +26,7 @@ export class StudentsService {
     private readonly drizzle: Database,
     private readonly usersService: UsersService,
     private readonly mailService: MailService,
+    private readonly configService: ConfigService,
     private readonly programmesService: ProgrammesService,
   ) {}
 
@@ -79,12 +81,15 @@ export class StudentsService {
         +createStudentDto.programmeId,
         studentDetailsId.studentDetails.id,
       );
+      const loginUrl = `${this.configService.get<string>("FE_DOMAIN")}/login`;
       await this.mailService.sendMail({
         to: createStudentDto.email,
         subject: "New student account created",
-        html: generateNewStudentEmail(
+        html: generateNewUserEmail(
           createStudentDto.firstName,
           createStudentDto.lastName,
+          createStudentDto.email,
+          loginUrl,
           defaultPassword,
         ),
       });

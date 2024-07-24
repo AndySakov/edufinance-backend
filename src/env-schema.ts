@@ -2,6 +2,7 @@ import * as Joi from "joi";
 
 const envSchema = Joi.object({
   ALLOWED_ORIGINS: Joi.string(),
+  FE_DOMAIN: Joi.string(),
   PORT: Joi.number().default(6000),
   JWT_SECRET: Joi.string().alphanum(),
   JWT_EXPIRES_IN: Joi.string().alphanum(),
@@ -15,6 +16,8 @@ const envSchema = Joi.object({
   MAILTRAP_HOST: Joi.string(),
   MAILTRAP_FROM: Joi.string(),
   MAILTRAP_SECURE: Joi.boolean().default(false),
+  MAGIC_LINK_SECRET: Joi.string(),
+  MAGIC_LINK_EXPIRES_IN: Joi.string(),
   DB_HOST: Joi.string(),
   DB_USER: Joi.string(),
   DB_PASSWORD: Joi.string(),

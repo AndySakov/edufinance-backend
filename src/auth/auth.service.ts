@@ -85,19 +85,11 @@ export class AuthService {
     body: UpdatePasswordDto,
   ): Promise<ResponseWithNoData> {
     const existingUser = await this.usersService.findByEmail(email, {
-      password: true,
+      details: false,
     });
     if (existingUser) {
-      const isValid = await this.validatePassword(
-        existingUser.password,
-        body.oldPassword,
-      );
-      if (isValid) {
-        await this.usersService.updateUserPassword(email, body.newPassword);
-        return { success: true, message: "Password updated" };
-      } else {
-        return { success: false, message: "Invalid credentials" };
-      }
+      await this.usersService.updateUserPassword(email, body.newPassword);
+      return { success: true, message: "Password updated" };
     }
   }
 

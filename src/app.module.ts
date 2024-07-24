@@ -25,6 +25,7 @@ import { PaymentsModule } from "./payments/payments.module";
 import { StudentModule } from "./student/student.module";
 import { TransactionModule } from "./transaction/transaction.module";
 import { PaymentCategoryService } from "./payment-category/payment-category.service";
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { PaymentCategoryService } from "./payment-category/payment-category.serv
     PaymentsModule,
     StudentModule,
     TransactionModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

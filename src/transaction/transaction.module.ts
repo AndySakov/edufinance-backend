@@ -7,6 +7,7 @@ import { StudentModule } from "src/student/student.module";
 import { PaymentCategoryModule } from "src/payment-category/payment-category.module";
 import { PaymentsModule } from "src/payments/payments.module";
 import { HttpModule } from "@nestjs/axios";
+import { MailModule } from "src/mail/mail.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { HttpModule } from "@nestjs/axios";
         baseURL: configService.get<string>("PAYSTACK_DOMAIN"),
       }),
     }),
+    MailModule,
     BillsModule,
     StudentModule,
     PaymentsModule,

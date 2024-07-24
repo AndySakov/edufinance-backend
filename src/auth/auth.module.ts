@@ -4,6 +4,7 @@ import { AuthController } from "./auth.controller";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { JwtModule } from "@nestjs/jwt";
 import { UsersModule } from "src/users/users.module";
+import { MagicAuthModule } from "./magic/magic-auth.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UsersModule } from "src/users/users.module";
       }),
     }),
     forwardRef(() => UsersModule),
+    MagicAuthModule,
   ],
   controllers: [AuthController],
   providers: [AuthService],

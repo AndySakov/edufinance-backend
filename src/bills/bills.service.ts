@@ -6,9 +6,10 @@ import { eq } from "drizzle-orm";
 import { CustomLogger } from "src/shared/utils/custom-logger";
 import { data } from "src/shared/interfaces";
 import { bills } from "src/db/bills";
-import { BillTypeService } from "src/bill-types/bill-types.service";
 import { billTypes } from "src/db/bill-types";
 import { billsToPayees } from "src/db/bills-to-payees";
+import { MailService } from "src/mail/mail.service";
+import { generateNewBillEmail } from "src/shared/helpers/email-generators";
 
 @Injectable()
 export class BillsService {
@@ -16,6 +17,7 @@ export class BillsService {
   constructor(
     @Inject(DRIZZLE)
     private readonly drizzle: Database,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createBillDto: CreateBillDto) {
@@ -30,6 +32,20 @@ export class BillsService {
               studentsToProgrammes: {
                 columns: {
                   studentId: true,
+                },
+                with: {
+                  student: {
+                    columns: {
+                      firstName: true,
+                    },
+                    with: {
+                      user: {
+                        columns: {
+                          email: true,
+                        },
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -51,6 +67,17 @@ export class BillsService {
           payeeId: BigInt(stp.studentId),
         })),
       );
+
+      for (const targetedPayee of programme.programme.studentsToProgrammes) {
+        await this.mailService.sendMail({
+          to: targetedPayee.student.user.email,
+          subject: "New bill created for you",
+          html: generateNewBillEmail(
+            targetedPayee.student.firstName,
+            new Date(createBillDto.dueDate),
+          ),
+        });
+      }
 
       return {
         success: true,

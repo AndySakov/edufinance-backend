@@ -4,6 +4,9 @@ import { eq } from "drizzle-orm";
 import { financialAidApplications } from "src/db/financial-aid-applications";
 import { ApproveFinancialAidApplicationDto } from "./dto/approve-financial-aid-application.dto";
 import { FinancialAidTypesService } from "src/financial-aid-types/financial-aid-types.service";
+import { MailService } from "src/mail/mail.service";
+import { data } from "src/shared/interfaces";
+import { generateNewFinancialAidApplicationVerdictEmail } from "src/shared/helpers/email-generators";
 
 @Injectable()
 export class FinancialAidApplicationsService {
@@ -11,6 +14,7 @@ export class FinancialAidApplicationsService {
     @Inject(DRIZZLE)
     private readonly drizzle: Database,
     private readonly financialAidTypesService: FinancialAidTypesService,
+    private readonly mailService: MailService,
   ) {}
 
   async findAll() {
@@ -36,6 +40,13 @@ export class FinancialAidApplicationsService {
                 firstName: true,
                 lastName: true,
               },
+              with: {
+                user: {
+                  columns: {
+                    email: true,
+                  },
+                },
+              },
             },
             type: {
               columns: {
@@ -49,10 +60,15 @@ export class FinancialAidApplicationsService {
         message: "Financial aid applications found",
         data: financialAidApplications.map(financialAidApplication => ({
           id: financialAidApplication.id,
-          applicant:
+          applicantName:
             financialAidApplication.applicant.firstName +
             " " +
             financialAidApplication.applicant.lastName,
+          applicant: {
+            firstName: financialAidApplication.applicant.firstName,
+            lastName: financialAidApplication.applicant.lastName,
+            email: financialAidApplication.applicant.user.email,
+          },
           householdIncome: financialAidApplication.householdIncome,
           hasReceivedPreviousFinancialAid:
             financialAidApplication.hasReceivedPreviousFinancialAid === 1,
@@ -100,6 +116,13 @@ export class FinancialAidApplicationsService {
                 firstName: true,
                 lastName: true,
               },
+              with: {
+                user: {
+                  columns: {
+                    email: true,
+                  },
+                },
+              },
             },
             type: {
               columns: {
@@ -114,10 +137,15 @@ export class FinancialAidApplicationsService {
           message: "Financial aid application found",
           data: {
             id: financialAidApplication.id,
-            applicant:
+            applicantName:
               financialAidApplication.applicant.firstName +
               " " +
               financialAidApplication.applicant.lastName,
+            applicant: {
+              firstName: financialAidApplication.applicant.firstName,
+              lastName: financialAidApplication.applicant.lastName,
+              email: financialAidApplication.applicant.user.email,
+            },
             householdIncome: financialAidApplication.householdIncome,
             hasReceivedPreviousFinancialAid:
               financialAidApplication.hasReceivedPreviousFinancialAid === 1,
@@ -152,7 +180,7 @@ export class FinancialAidApplicationsService {
     approveFinancialAidApplicationDto: ApproveFinancialAidApplicationDto,
   ) {
     try {
-      const existingFinancialAidApplication = await this.findOne(id);
+      const existingFinancialAidApplication = data(await this.findOne(id));
       const type = await this.financialAidTypesService.findOne(
         approveFinancialAidApplicationDto.typeId,
       );
@@ -167,6 +195,14 @@ export class FinancialAidApplicationsService {
             updatedAt: new Date(),
           })
           .where(eq(financialAidApplications.id, id));
+        await this.mailService.sendMail({
+          to: existingFinancialAidApplication.applicant.email,
+          subject: "Financial aid application approved",
+          html: generateNewFinancialAidApplicationVerdictEmail(
+            existingFinancialAidApplication.applicant.firstName,
+            "approved",
+          ),
+        });
         return {
           success: true,
           message: "Financial aid application approved",
@@ -187,7 +223,7 @@ export class FinancialAidApplicationsService {
 
   async reject(id: number) {
     try {
-      const existingFinancialAidApplication = await this.findOne(id);
+      const existingFinancialAidApplication = data(await this.findOne(id));
       if (existingFinancialAidApplication) {
         await this.drizzle
           .update(financialAidApplications)
@@ -196,6 +232,14 @@ export class FinancialAidApplicationsService {
             updatedAt: new Date(),
           })
           .where(eq(financialAidApplications.id, id));
+        await this.mailService.sendMail({
+          to: existingFinancialAidApplication.applicant.email,
+          subject: "Financial aid application rejected",
+          html: generateNewFinancialAidApplicationVerdictEmail(
+            existingFinancialAidApplication.applicant.firstName,
+            "rejected",
+          ),
+        });
         return {
           success: true,
           message: "Financial aid application rejected",
