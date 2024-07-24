@@ -70,10 +70,11 @@ export class StudentService {
       await this.getMyFinancialAidInformation(email),
     );
 
-    const totalDiscounted = financialAidInfo.discounts.reduce(
-      (acc, discount) => acc + discount.amount,
-      0,
-    );
+    const totalDiscounted =
+      financialAidInfo?.discounts?.reduce(
+        (acc, discount) => acc + discount.amount,
+        0,
+      ) ?? 0;
 
     const totalBills = bills.reduce((acc, bill) => {
       return acc + bill.amountDue;
