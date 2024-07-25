@@ -76,72 +76,77 @@ export class StudentService {
         0,
       ) ?? 0;
 
-    const totalBills = bills.reduce((acc, bill) => {
-      return acc + bill.amountDue;
-    }, 0);
+    const totalBills =
+      bills?.reduce((acc, bill) => {
+        return acc + bill.amountDue;
+      }, 0) ?? 0;
 
-    const totalPaid = bills.reduce((acc, bill) => {
-      return (
-        acc +
-        bill.payments
-          ?.filter(x => x.status === "paid")
-          .map(payment => {
-            return payment.amount;
-          })
-          .reduce((acc, x) => acc + x, 0)
-      );
-    }, 0);
+    const totalPaid =
+      bills?.reduce((acc, bill) => {
+        return (
+          acc +
+          bill.payments
+            ?.filter(x => x.status === "paid")
+            .map(payment => {
+              return payment.amount;
+            })
+            .reduce((acc, x) => acc + x, 0)
+        );
+      }, 0) ?? 0;
 
     const totalDue = totalBills - totalPaid - totalDiscounted;
 
-    const totalOverDue = bills
-      .filter(bill => {
-        return isAfter(new Date(), bill.dueDate);
-      })
-      .reduce((acc, bill) => {
-        return (
-          acc +
-          (bill.amountDue -
-            bill.payments
-              .filter(x => x.status === "paid")
-              .map(payment => payment.amount)
-              .reduce((acc, x) => acc + x, 0)) -
-          (financialAidInfo?.discounts?.find(
-            discount => discount.billType === bill.billType,
-          )?.amount ?? 0)
-        );
-      }, 0);
+    const totalOverDue =
+      bills
+        ?.filter(bill => {
+          return isAfter(new Date(), bill.dueDate);
+        })
+        ?.reduce((acc, bill) => {
+          return (
+            acc +
+            (bill.amountDue -
+              bill.payments
+                .filter(x => x.status === "paid")
+                .map(payment => payment.amount)
+                .reduce((acc, x) => acc + x, 0)) -
+            (financialAidInfo?.discounts?.find(
+              discount => discount.billType === bill.billType,
+            )?.amount ?? 0)
+          );
+        }, 0) ?? 0;
 
     return {
       success: true,
       message: "Student dashboard stats found",
       data: {
         billCount: bills.length,
-        paidBillCount: bills.filter(bill => {
-          const totalPaid = bill.payments
-            .filter(x => x.status === "paid")
-            .map(payment => payment.amount)
-            .reduce((acc, x) => acc + x, 0);
-          const totalDiscounted =
-            financialAidInfo?.discounts?.find(
-              discount => discount.billType === bill.billType,
-            )?.amount ?? 0;
-          return bill.amountDue - totalPaid - totalDiscounted === 0;
-        }).length,
-        unpaidBillCount: bills.filter(bill => {
-          const totalPaid = bill.payments
-            .filter(x => x.status === "paid")
-            .map(payment => payment.amount)
-            .reduce((acc, x) => acc + x, 0);
-          const totalDiscounted =
-            financialAidInfo?.discounts?.find(
-              discount => discount.billType === bill.billType,
-            )?.amount ?? 0;
-          return bill.amountDue - totalPaid - totalDiscounted > 0;
-        }).length,
-        overdueBillCount: bills.filter(bill =>
-          isAfter(new Date(), bill.dueDate),
-        ).length,
+        paidBillCount:
+          bills?.filter(bill => {
+            const totalPaid = bill.payments
+              .filter(x => x.status === "paid")
+              .map(payment => payment.amount)
+              .reduce((acc, x) => acc + x, 0);
+            const totalDiscounted =
+              financialAidInfo?.discounts?.find(
+                discount => discount.billType === bill.billType,
+              )?.amount ?? 0;
+            return bill.amountDue - totalPaid - totalDiscounted === 0;
+          })?.length ?? 0,
+        unpaidBillCount:
+          bills?.filter(bill => {
+            const totalPaid =
+              bill?.payments
+                ?.filter(x => x.status === "paid")
+                ?.map(payment => payment.amount)
+                ?.reduce((acc, x) => acc + x, 0) ?? 0;
+            const totalDiscounted =
+              financialAidInfo?.discounts?.find(
+                discount => discount.billType === bill.billType,
+              )?.amount ?? 0;
+            return bill.amountDue - totalPaid - totalDiscounted > 0;
+          })?.length ?? 0,
+        overdueBillCount:
+          bills?.filter(bill => isAfter(new Date(), bill.dueDate))?.length ?? 0,
         totalBills,
         totalPaid,
         totalOverDue,
@@ -380,7 +385,7 @@ export class StudentService {
             res?.bill?.billType?.discounts
               ?.filter(
                 discount =>
-                  discount.financialAidType.name === financialAidInfo.type,
+                  discount?.financialAidType?.name === financialAidInfo.type,
               )
               .map(discount => ({
                 name: discount.name,

@@ -10,7 +10,7 @@ export const billsToPayees = mysqlTable(
       .references(() => bills.id, { onDelete: "cascade" })
       .notNull(),
     payeeId: bigint("payee_id", { mode: "bigint", unsigned: true })
-      .references(() => studentDetails.id, { onDelete: "restrict" })
+      .references(() => studentDetails.id, { onDelete: "cascade" })
       .notNull(),
   },
   t => ({

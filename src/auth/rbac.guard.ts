@@ -20,7 +20,7 @@ export class RBACGuard implements CanActivate {
   ) {}
 
   private async getSession(req: Request): Promise<AuthenticatedUser | null> {
-    const token = req.headers["authorization"].split(" ")[1];
+    const token = req.headers.authorization.replace("Bearer ", "");
     if (token) {
       const decoded = this.authService.decodeToken(token);
       if (decoded) {

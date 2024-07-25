@@ -61,12 +61,14 @@ export class BillsService {
         billTypeId: BigInt(createBillDto.billTypeId),
       });
 
-      await this.drizzle.insert(billsToPayees).values(
-        programme.programme.studentsToProgrammes.map(stp => ({
-          billId: BigInt(res.insertId),
-          payeeId: BigInt(stp.studentId),
-        })),
-      );
+      if (programme.programme.studentsToProgrammes.length > 0) {
+        await this.drizzle.insert(billsToPayees).values(
+          programme.programme.studentsToProgrammes.map(stp => ({
+            billId: BigInt(res.insertId),
+            payeeId: BigInt(stp.studentId),
+          })),
+        );
+      }
 
       for (const targetedPayee of programme.programme.studentsToProgrammes) {
         await this.mailService.sendMail({
