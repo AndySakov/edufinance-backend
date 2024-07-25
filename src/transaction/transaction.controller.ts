@@ -28,34 +28,34 @@ export class TransactionController {
     @Headers("x-paystack-signature") signature: string,
     @Body() body: PaystackWebhookPayload,
   ) {
-    const whitelist = this.configService
-      .get<string>("PAYSTACK_WEBHOOK_IP_WHITELIST")
-      .split(",");
-    if (
-      this.configService.get("NODE_ENV") === "development" ||
-      whitelist.includes(req.ip)
-    ) {
-      const secret = this.configService.get<string>("PAYSTACK_SECRET_KEY");
-      const { createHmac } = await import("node:crypto");
-      const hash = createHmac("sha512", secret)
-        .update(JSON.stringify(body))
-        .digest("hex");
-      if (hash === signature) {
-        console.log(body);
-        return this.transactionService.verifyPayment(body);
-      } else {
-        this.logger.warn(`Invalid signature: ${signature}`);
-        return {
-          success: false,
-          message: "Invalid signature",
-        };
-      }
+    // const whitelist = this.configService
+    //   .get<string>("PAYSTACK_WEBHOOK_IP_WHITELIST")
+    //   .split(",");
+    // if (
+    //   this.configService.get("NODE_ENV") === "development" ||
+    //   whitelist.includes(req.ip)
+    // ) {
+    const secret = this.configService.get<string>("PAYSTACK_SECRET_KEY");
+    const { createHmac } = await import("node:crypto");
+    const hash = createHmac("sha512", secret)
+      .update(JSON.stringify(body))
+      .digest("hex");
+    if (hash === signature) {
+      console.log(body);
+      return this.transactionService.verifyPayment(body);
     } else {
-      this.logger.warn(`Invalid IP: ${req.ip}`);
+      this.logger.warn(`Invalid signature: ${signature}`);
       return {
         success: false,
-        message: "Invalid IP",
+        message: "Invalid signature",
       };
     }
+    // } else {
+    //   this.logger.warn(`Invalid IP: ${req.ip}`);
+    //   return {
+    //     success: false,
+    //     message: "Invalid IP",
+    //   };
+    // }
   }
 }
