@@ -230,13 +230,14 @@ export class StudentService {
           message: "Financial aid information found",
           data: {
             ...mostRecentSuccessful,
-            discounts: details.type.financialAidDiscounts.map(
-              financialAidDiscount => ({
-                name: financialAidDiscount.name,
-                amount: financialAidDiscount.amount,
-                billType: financialAidDiscount.billType.name,
-              }),
-            ),
+            discounts:
+              details?.type?.financialAidDiscounts?.map(
+                financialAidDiscount => ({
+                  name: financialAidDiscount.name,
+                  amount: financialAidDiscount.amount,
+                  billType: financialAidDiscount.billType.name,
+                }),
+              ) ?? [],
           },
         };
       } else {
@@ -385,7 +386,7 @@ export class StudentService {
             res?.bill?.billType?.discounts
               ?.filter(
                 discount =>
-                  discount?.financialAidType?.name === financialAidInfo.type,
+                  discount?.financialAidType?.name === financialAidInfo?.type,
               )
               .map(discount => ({
                 name: discount.name,
