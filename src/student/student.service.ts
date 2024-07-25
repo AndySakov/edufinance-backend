@@ -119,7 +119,7 @@ export class StudentService {
       success: true,
       message: "Student dashboard stats found",
       data: {
-        billCount: bills.length,
+        billCount: bills?.length ?? 0,
         paidBillCount:
           bills?.filter(bill => {
             const totalPaid = bill.payments
