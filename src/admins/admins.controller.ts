@@ -20,7 +20,10 @@ import { UpdatePermissionsDto } from "./dto/update-permissions.dto";
 @Controller("admins")
 @UseGuards(RBACGuard)
 @Roles(UserRoles.ADMIN)
-@Permissions(AdminPermissions.USER_MANAGEMENT)
+@Permissions(
+  AdminPermissions.USER_MANAGEMENT,
+  AdminPermissions.SECURITY_AND_ACCESS_CONTROL,
+)
 export class AdminsController {
   constructor(private readonly adminsService: AdminsService) {}
 
