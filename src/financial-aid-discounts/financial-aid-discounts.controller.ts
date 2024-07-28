@@ -19,7 +19,7 @@ import { Permissions, Roles } from "src/shared/decorators";
 @Controller("financial-aid-discounts")
 @UseGuards(RBACGuard)
 @Roles(UserRoles.ADMIN)
-@Permissions(AdminPermissions.FINANCIAL_AID_GRADES_MANAGEMENT)
+@Permissions(AdminPermissions.BILL_DISCOUNTS_MANAGEMENT)
 export class FinancialAidDiscountsController {
   constructor(
     private readonly financialAidDiscountsService: FinancialAidDiscountsService,

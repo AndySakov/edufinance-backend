@@ -500,7 +500,7 @@ export class StudentService {
             payment?.bill?.billType?.discounts
               ?.filter(
                 discount =>
-                  discount.financialAidType.name === financialAidInfo.type,
+                  discount.financialAidType.name === financialAidInfo?.type,
               )
               .map(discount => ({
                 name: discount.name,

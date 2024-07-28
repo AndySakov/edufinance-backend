@@ -8,7 +8,6 @@ export const AdminPermissions = {
   USER_MANAGEMENT: "user_management",
   PROGRAMME_MANAGEMENT: "programme_management",
   STUDENT_MANAGEMENT: "student_management",
-  SUPPORT_AND_HELP_CENTER: "support_and_help_center",
   SECURITY_AND_ACCESS_CONTROL: "security_and_access_control",
   FINANCIAL_AID_GRADES_MANAGEMENT: "financial_aid_grades_management",
   BILL_DISCOUNTS_MANAGEMENT: "bill_discounts_management",
