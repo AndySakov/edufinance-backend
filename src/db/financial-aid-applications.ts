@@ -18,11 +18,11 @@ export const financialAidApplications = mysqlTable(
   {
     id: serial("id").primaryKey(),
     applicantId: bigint("applicant_id", { mode: "bigint", unsigned: true })
-      .references(() => studentDetails.id)
+      .references(() => studentDetails.id, { onDelete: "cascade" })
       .notNull(),
     typeId: bigint("type_id", { mode: "bigint", unsigned: true }).references(
       () => financialAidTypes.id,
-      { onDelete: "restrict" },
+      { onDelete: "cascade" },
     ),
     status: mysqlEnum("status", ["pending", "approved", "rejected"]).notNull(),
     householdIncome: decimal("household_income", { precision: 10, scale: 2 })

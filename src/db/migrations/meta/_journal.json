@@ -43,6 +43,13 @@
       "when": 1721927032816,
       "tag": "0005_wonderful_multiple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1722267479549,
+      "tag": "0006_noisy_sabretooth",
+      "breakpoints": true
     }
   ]
 }
